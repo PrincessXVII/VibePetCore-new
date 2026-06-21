@@ -23,9 +23,8 @@ public final class ModuleManager {
     }
 
     public void reloadAll() {
-        for (CoreModule module : modules) {
-            runSafely(module, "reload", module::reload);
-        }
+        disableAll();
+        enableAll();
     }
 
     public void disableAll() {

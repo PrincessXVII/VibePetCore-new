@@ -1,0 +1,11 @@
+VibePetCore 2.6.13
+
+What changed:
+- /vpc reload now restarts modules with the same dependency-safe order as a real plugin restart.
+- All modules are disabled in reverse registration order, then enabled in registration order.
+- This avoids reload-time desync between PlayerDataManager and PetEngineManager.
+
+Admin notes:
+- No config migration is required.
+- Prefer /vpc reload only for config/balance changes; still use a full server restart before a public release deploy.
+- Smoke check: summon a pet, run /vpc reload, confirm the core/active-button and runtime pet resync without "empty core" errors.
