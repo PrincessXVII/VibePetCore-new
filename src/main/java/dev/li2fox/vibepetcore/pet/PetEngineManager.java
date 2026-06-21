@@ -10,6 +10,7 @@ import dev.li2fox.vibepetcore.player.OwnedPetData;
 import dev.li2fox.vibepetcore.player.PlayerData;
 import dev.li2fox.vibepetcore.player.PlayerDataManager;
 import dev.li2fox.vibepetcore.progression.FeedResult;
+import dev.li2fox.vibepetcore.progression.FeedType;
 import dev.li2fox.vibepetcore.api.ProgressionAPI;
 import dev.li2fox.vibepetcore.pet.ability.PetAbilityService;
 import dev.li2fox.vibepetcore.pet.armor.PetArmorService;
@@ -668,18 +669,28 @@ public final class PetEngineManager implements CoreModule {
                     finishEvolution(player, pet);
                 }
                 if (result.accepted()) {
-                    if (result.feedType() == dev.li2fox.vibepetcore.progression.FeedType.RARE_RESOURCE) {
+                    if (result.feedType() == FeedType.RARE_RESOURCE) {
                         grantBond(pet, balanceConfig.bondRareFoodGain(), "rare-food", balanceConfig.bondRareFoodCooldownMillis());
-                    } else if (result.feedType() == dev.li2fox.vibepetcore.progression.FeedType.FOOD) {
+                    } else if (result.feedType() == FeedType.FOOD) {
                         grantBond(pet, balanceConfig.bondFoodGain(), "food", balanceConfig.bondFoodCooldownMillis());
                     }
                 }
                 pet.refreshName();
                 if (result.accepted()) {
                     showActionBar(player, 2_000L);
+                    if (result.feedType() == FeedType.FOOD || result.feedType() == FeedType.RARE_RESOURCE) {
+                        playFeedingParticles(pet);
+                    }
                 }
                 return result;
             });
+    }
+
+    private void playFeedingParticles(RuntimePet pet) {
+        pet.entity().ifPresent(entity -> {
+            Location location = entity.getLocation().add(0.0D, 0.65D, 0.0D);
+            entity.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, location, 6, 0.25D, 0.25D, 0.25D, 0.0D);
+        });
     }
 
     public Optional<RuntimePet> getPetByEntity(Entity entity) {

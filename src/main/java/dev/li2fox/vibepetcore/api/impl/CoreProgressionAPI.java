@@ -161,30 +161,28 @@ public final class CoreProgressionAPI implements ProgressionAPI {
         }
 
         PetType type = PetType.parse(pet.petType()).orElse(PetType.WOLF);
-        if (balanceConfig.isPetFood(type, material)) {
-            boolean healFood = balanceConfig.isPetHealFood(type, material);
-            if (healFood) {
-                pet.setHealth(pet.health() + 3.0D);
-            }
-            pet.setSatiety(pet.satiety() + 1);
-            ProgressionResult progression = addFeedingCareXp(pet);
-            String message = healFood
-                ? msg("feed.food.satiety", "The pet has eaten and feels better.")
-                : msg("feed.common-food", "The pet has eaten.");
-            return new FeedResult(true, FeedType.FOOD, progression, EvolutionResult.notAttempted(), message);
-        }
-
         if (balanceConfig.isPetRareResource(type, material)) {
-            pet.setHealth(pet.health() + 4.0D);
-            pet.setSatiety(pet.satiety() + 1);
-            pet.setGrowthBoostUntil(Bukkit.getCurrentTick() + balanceConfig.growthBoostDurationTicks());
+            boolean satietyChanged = fillSatiety(pet, 1.0D);
+            boolean growthBoostApplied = applyGrowthBoost(pet);
+            if (!satietyChanged && !growthBoostApplied) {
+                return FeedResult.rejected(msg("feed.reject.full", "The pet is already full."));
+            }
             ProgressionResult progression = addFeedingCareXp(pet);
             return new FeedResult(true, FeedType.RARE_RESOURCE, progression, EvolutionResult.notAttempted(), msg("feed.rare-resource", "The pet gained a growth boost."));
         }
 
+        if (balanceConfig.isPetFood(type, material)) {
+            if (!fillSatiety(pet, 1.0D)) {
+                return FeedResult.rejected(msg("feed.reject.full", "The pet is already full."));
+            }
+            ProgressionResult progression = addFeedingCareXp(pet);
+            return new FeedResult(true, FeedType.FOOD, progression, EvolutionResult.notAttempted(), msg("feed.food.satiety", "The pet has eaten and feels better."));
+        }
+
         if (!balanceConfig.hasConfiguredPetFood(type) && balanceConfig.isCommonFood(material)) {
-            pet.setHealth(pet.health() + 2.0D);
-            pet.setSatiety(pet.satiety() + 1);
+            if (!fillSatiety(pet, 1.0D)) {
+                return FeedResult.rejected(msg("feed.reject.full", "The pet is already full."));
+            }
             ProgressionResult progression = addFeedingCareXp(pet);
             return new FeedResult(true, FeedType.FOOD, progression, EvolutionResult.notAttempted(), msg("feed.common-food", "The pet has eaten."));
         }
@@ -205,6 +203,34 @@ public final class CoreProgressionAPI implements ProgressionAPI {
 
     private boolean isCapped(OwnedPetData pet, int maxLevel) {
         return pet.level() >= maxLevel;
+    }
+
+    private boolean fillSatiety(OwnedPetData pet, double amount) {
+        double maxSatiety = Math.max(1.0D, balanceConfig.eggMaxSatiety());
+        double before = Math.min(pet.satiety(), maxSatiety);
+        double after = Math.min(maxSatiety, before + Math.max(0.0D, amount));
+        if (after <= before) {
+            if (pet.satiety() > maxSatiety) {
+                pet.setSatiety(maxSatiety);
+            }
+            return false;
+        }
+        pet.setSatiety(after);
+        return pet.satiety() > before;
+    }
+
+    private boolean applyGrowthBoost(OwnedPetData pet) {
+        int durationTicks = balanceConfig.growthBoostDurationTicks();
+        if (durationTicks <= 0) {
+            return false;
+        }
+        long before = pet.growthBoostUntil();
+        long boostUntil = (long) Bukkit.getCurrentTick() + durationTicks;
+        if (boostUntil <= before) {
+            return false;
+        }
+        pet.setGrowthBoostUntil(boostUntil);
+        return pet.growthBoostUntil() > before;
     }
 
     private int safeEpochSecond(long value) {

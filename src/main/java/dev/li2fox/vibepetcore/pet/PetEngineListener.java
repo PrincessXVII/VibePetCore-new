@@ -25,6 +25,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Material;
 import org.bukkit.Bukkit;
+import net.kyori.adventure.text.Component;
 
 public final class PetEngineListener implements Listener {
     private final PetEngineManager petEngineManager;
@@ -170,7 +171,7 @@ public final class PetEngineListener implements Listener {
             if (feedResult.isPresent()) {
                 var result = feedResult.get();
                 event.setCancelled(true);
-                event.getPlayer().sendMessage(result.message());
+                event.getPlayer().sendActionBar(Component.text(result.message()));
                 if (result.accepted() && item.getAmount() > 0 && !event.getPlayer().getGameMode().name().equals("CREATIVE")) {
                     item.setAmount(item.getAmount() - 1);
                 }

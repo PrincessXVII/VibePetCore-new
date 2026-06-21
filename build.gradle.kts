@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "dev.li2fox.vibepetcore"
-version = "2.6.7"
+version = "2.6.8"
 
 repositories {
     mavenCentral()
@@ -25,6 +25,7 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -1,0 +1,6 @@
+VibePetCore 2.6.8
+
+- Feeding behavior changed: normal food no longer heals pet HP directly.
+- Food now restores satiety; pet HP regenerates over time from satiety through the existing regen loop.
+- Normal food is not consumed when satiety is already full and no growth/evolution effect applies.
+- Update player-facing help if your server has custom message files copied from an older version.
