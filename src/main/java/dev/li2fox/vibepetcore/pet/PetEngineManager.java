@@ -93,6 +93,7 @@ public final class PetEngineManager implements CoreModule {
     private final Map<UUID, Long> mobTargetCoverCooldowns = new ConcurrentHashMap<>();
     private final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(PetEngineManager.class);
     private int lastSocialScanTick;
+    private int socialScanOffset;
 
     public PetEngineManager(PlayerDataManager playerDataManager, BalanceConfig balanceConfig, PetVaultService petVaultService, PetArmorService petArmorService, PetDebugLogger debugLogger) {
         this.playerDataManager = playerDataManager;
@@ -413,6 +414,13 @@ public final class PetEngineManager implements CoreModule {
         int tick = Bukkit.getCurrentTick();
         if (tick - lastSocialScanTick >= 20) {
             lastSocialScanTick = tick;
+            int petCount = activePets.size();
+            int socialPairBudget = PetSocialCoordinatorSupport.socialPairBudget(petCount);
+            if (petCount > 1) {
+                socialScanOffset = Math.floorMod(socialScanOffset + Math.max(1, petCount / 7), petCount);
+            } else {
+                socialScanOffset = 0;
+            }
             PetSocialCoordinatorSupport.pruneTransientState(socialPairCooldowns, combatLinks, System.currentTimeMillis());
             PetSocialCoordinatorSupport.runSocialInteractions(
                 activePets,
@@ -421,7 +429,9 @@ public final class PetEngineManager implements CoreModule {
                 Bukkit::getPlayer,
                 this::pairInCombat,
                 (first, second) -> roll(socialChance(first, second)),
-                (owner, ignoredPet) -> showActionBar(owner, 2_500L)
+                (owner, ignoredPet) -> showActionBar(owner, 2_500L),
+                socialScanOffset,
+                socialPairBudget
             );
         }
     }

@@ -58,6 +58,10 @@
 - Не переносить все страницы одним большим патчем; после каждой страницы запускать `compileJava test`.
 
 ## Последние важные изменения
+- `2.6.14`
+  - runtime-пит больше не применяет static entity state каждый update: owner-collision exemption, empty hands, persistent appearance и scale кэшируются по entity/type/evolution;
+  - custom name питомца обновляется только при смене petName/type/rarity/evolution/level, а не на каждом pet-update tick;
+  - social scan питомцев получил budget + rotation: малый онлайн сканируется полностью, большой онлайн не уходит в квадратичный O(n²) scan каждую секунду.
 - `2.6.13`
   - `/vpc reload` теперь перезапускает модули безопасным порядком: сначала все `disable` в обратном порядке, затем все `enable` в исходном;
   - это убирает риск reload-рассинхрона, где `PlayerDataManager` уже очищен/перезагружен, а `PetEngineManager` ещё держит runtime-питов;

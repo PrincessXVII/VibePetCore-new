@@ -1,0 +1,11 @@
+VibePetCore 2.6.14
+
+What changed:
+- Runtime pet update now caches static Bukkit entity state instead of reapplying it every pet-update tick.
+- Pet custom names are refreshed only when the visible name signature changes.
+- Pet social interactions now use a scan budget and rotating offset: small online is fully scanned, large online is capped to avoid O(n^2) work every second.
+
+Admin notes:
+- No config migration is required.
+- Smoke check with 3+ players: summon pets, move/follow/stay, rest/comfort state, rename/level/evolve, and confirm names/scale/appearance still update.
+- Watch timings/spark around pet-update and social interactions with 50+ active pets.

@@ -47,6 +47,13 @@ public final class RuntimePet {
     private long nextSocialActionMillis;
     private PetType temporaryFormType;
     private long temporaryFormUntilMillis;
+    private UUID staticEntitySyncId;
+    private PetType staticEntitySyncType;
+    private int staticEntitySyncEvolutionStage;
+    private UUID visualStateEntityId;
+    private Boolean visualStateResting;
+    private UUID nameEntityId;
+    private String nameSignature;
 
     public RuntimePet(OwnedPetData data, PetType type) {
         this.data = data;
@@ -131,6 +138,7 @@ public final class RuntimePet {
         lastEntityLocation = spawnState.lastEntityLocation();
         lastEntityMoveMillis = spawnState.lastEntityMoveMillis();
         nextSpawnAttemptMillis = 0L;
+        resetEntitySyncCache();
         sparringAttack = false;
         resetAttackSequence();
         announceAction("spawning", 1_800L);
@@ -142,6 +150,7 @@ public final class RuntimePet {
     public void despawn() {
         temporaryFormType = null;
         temporaryFormUntilMillis = 0L;
+        resetEntitySyncCache();
         removeEntity();
     }
 
@@ -200,12 +209,11 @@ public final class RuntimePet {
         idleTicks++;
         PetType runtimeType = effectiveType();
         updateOwnerMovement(owner);
-        PetCollisionSupport.applyOwnerExemption(owner, entity);
-        PetAppearanceSupport.clearEntityHands(entity);
-        PetAppearanceSupport.applyPersistentAppearance(entity, data);
-        PetAppearanceSupport.applyVisualState(entity, data, false);
-        PetMotionSupport.applyScale(entity, config, runtimeType, data.evolutionStage());
+        syncStaticEntityStateIfNeeded(owner, config, runtimeType);
         boolean comfortResting = PetCompanionComfortSupport.keepResting(owner, entity, runtimeType, data, abilityService);
+        if (!comfortResting) {
+            applyVisualStateIfNeeded(false);
+        }
         if (comfortResting && state() != PetState.IDLE) {
             setState(PetState.IDLE);
         }
@@ -336,7 +344,66 @@ public final class RuntimePet {
     }
 
     public void refreshName() {
+        if (entity == null || entity.isDead()) {
+            return;
+        }
+        UUID entityId = entity.getUniqueId();
+        String signature = nameSignature();
+        if (entityId.equals(nameEntityId) && signature.equals(nameSignature)) {
+            return;
+        }
         PetRuntimeStateSupport.refreshName(entity, data, type);
+        nameEntityId = entityId;
+        nameSignature = signature;
+    }
+
+    private void syncStaticEntityStateIfNeeded(Player owner, BalanceConfig config, PetType runtimeType) {
+        if (entity == null || entity.isDead()) {
+            return;
+        }
+        UUID entityId = entity.getUniqueId();
+        int evolutionStage = data.evolutionStage();
+        if (entityId.equals(staticEntitySyncId) && runtimeType == staticEntitySyncType && evolutionStage == staticEntitySyncEvolutionStage) {
+            return;
+        }
+        PetCollisionSupport.applyOwnerExemption(owner, entity);
+        PetAppearanceSupport.clearEntityHands(entity);
+        PetAppearanceSupport.applyPersistentAppearance(entity, data);
+        PetMotionSupport.applyScale(entity, config, runtimeType, evolutionStage);
+        staticEntitySyncId = entityId;
+        staticEntitySyncType = runtimeType;
+        staticEntitySyncEvolutionStage = evolutionStage;
+    }
+
+    private void applyVisualStateIfNeeded(boolean resting) {
+        if (entity == null || entity.isDead()) {
+            return;
+        }
+        UUID entityId = entity.getUniqueId();
+        if (entityId.equals(visualStateEntityId) && visualStateResting != null && visualStateResting == resting) {
+            return;
+        }
+        PetAppearanceSupport.applyVisualState(entity, data, resting);
+        visualStateEntityId = entityId;
+        visualStateResting = resting;
+    }
+
+    private String nameSignature() {
+        return data.petName()
+            + "|type=" + type.name()
+            + "|rarity=" + data.rarity()
+            + "|stage=" + data.evolutionStage()
+            + "|level=" + data.level();
+    }
+
+    private void resetEntitySyncCache() {
+        staticEntitySyncId = null;
+        staticEntitySyncType = null;
+        staticEntitySyncEvolutionStage = 0;
+        visualStateEntityId = null;
+        visualStateResting = null;
+        nameEntityId = null;
+        nameSignature = null;
     }
 
     public void recall(Player owner) {
@@ -353,7 +420,7 @@ public final class RuntimePet {
         ambientAction = recallState.ambientAction();
         ambientActionUntilMillis = recallState.ambientActionUntilMillis();
         announceAction(recallState.actionCaption(), recallState.actionCaptionDurationMillis());
-        PetAppearanceSupport.applyVisualState(entity, data, false);
+        applyVisualStateIfNeeded(false);
     }
 
     private void updateAttack(Player owner, BalanceConfig config, PetAbilityService abilityService, PetDebugLogger debugLogger) {
@@ -481,7 +548,7 @@ public final class RuntimePet {
             return;
         }
         if (decision.rest()) {
-            PetAppearanceSupport.applyVisualState(entity, data, true);
+            applyVisualStateIfNeeded(true);
             setSmoothedVelocity(decision.restVelocity(), decision.velocityBlend());
             if (decision.faceOwner()) {
                 face(owner.getEyeLocation());
@@ -517,7 +584,7 @@ public final class RuntimePet {
             return;
         }
         if (decision.rest()) {
-            PetAppearanceSupport.applyVisualState(entity, data, true);
+            applyVisualStateIfNeeded(true);
             setSmoothedVelocity(decision.restVelocity(), decision.velocityBlend());
             if (PetOwnerViewSupport.ownerLooksAtPet(owner, entity) || decision.faceOwner()) {
                 face(owner.getEyeLocation());

@@ -1,6 +1,7 @@
 package dev.li2fox.vibepetcore.pet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,14 +36,18 @@ final class PetSocialCoordinatorSupport {
         Function<UUID, Player> playerLookup,
         BiPredicate<Player, Player> pairInCombat,
         BiPredicate<RuntimePet, RuntimePet> socialChanceRoll,
-        BiConsumer<Player, RuntimePet> showActionBar
+        BiConsumer<Player, RuntimePet> showActionBar,
+        int scanOffset,
+        int maxPairChecks
     ) {
         List<RuntimePet> pets = new ArrayList<>(activePets.values());
         if (pets.size() < 2) {
             return;
         }
+        Collections.rotate(pets, -Math.floorMod(scanOffset, pets.size()));
 
         long now = nowSupplier.get();
+        int checkedPairs = 0;
         for (int i = 0; i < pets.size(); i++) {
             RuntimePet first = pets.get(i);
             Player firstOwner = playerLookup.apply(first.data().ownerId());
@@ -50,6 +55,9 @@ final class PetSocialCoordinatorSupport {
                 continue;
             }
             for (int j = i + 1; j < pets.size(); j++) {
+                if (++checkedPairs > maxPairChecks) {
+                    return;
+                }
                 RuntimePet second = pets.get(j);
                 Player secondOwner = playerLookup.apply(second.data().ownerId());
                 if (secondOwner == null || !secondOwner.isOnline() || !second.canSocialize() || !firstOwner.getWorld().equals(secondOwner.getWorld())) {
@@ -72,6 +80,18 @@ final class PetSocialCoordinatorSupport {
                 }
             }
         }
+    }
+
+    static int socialPairBudget(int petCount) {
+        if (petCount < 2) {
+            return 0;
+        }
+        int allPairs = petCount * (petCount - 1) / 2;
+        if (petCount <= 20) {
+            return allPairs;
+        }
+        int boundedBudget = Math.max(120, petCount * 8);
+        return Math.min(allPairs, boundedBudget);
     }
 
     static void pruneTransientState(Map<String, Long> socialPairCooldowns, Map<String, CombatLink> combatLinks, long now) {
