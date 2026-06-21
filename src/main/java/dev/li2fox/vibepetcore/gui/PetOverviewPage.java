@@ -63,4 +63,98 @@ final class PetOverviewPage implements PetGuiPage {
         gui.playMenuOpen(player, Sound.UI_BUTTON_CLICK, 0.6F, 1.15F);
         player.openInventory(inventory);
     }
+
+    @Override
+    public boolean handleClick(Player player, int slot) {
+        if (!gui.allowPetMenuClick(player)) {
+            return true;
+        }
+        if (slot == 24) {
+            if (gui.repairCore(player)) {
+                open(player);
+            }
+            return true;
+        }
+        if (slot == 13) {
+            gui.openCurrentPetGrowth(player, "pet");
+            return true;
+        }
+        if (slot == 9) {
+            gui.selectFollowPosition(player, 7);
+            return true;
+        }
+        if (slot == 10) {
+            gui.selectFollowPosition(player, 0);
+            return true;
+        }
+        if (slot == 11) {
+            gui.selectFollowPosition(player, 1);
+            return true;
+        }
+        if (slot == 18) {
+            gui.selectFollowPosition(player, 6);
+            return true;
+        }
+        if (slot == 20) {
+            gui.selectFollowPosition(player, 2);
+            return true;
+        }
+        if (slot == 27) {
+            gui.selectFollowPosition(player, 5);
+            return true;
+        }
+        if (slot == 28) {
+            gui.selectFollowPosition(player, 4);
+            return true;
+        }
+        if (slot == 29) {
+            gui.selectFollowPosition(player, 3);
+            return true;
+        }
+        if (slot == 31) {
+            gui.openActivePetVault(player);
+            return true;
+        }
+        if (slot == 32) {
+            gui.togglePassiveEffect(player, PotionEffectType.NIGHT_VISION);
+            return true;
+        }
+        if (slot == 33) {
+            gui.togglePassiveEffect(player, PotionEffectType.SLOW_FALLING);
+            return true;
+        }
+        if (slot == 34) {
+            gui.togglePassiveEffect(player, PotionEffectType.INVISIBILITY);
+            return true;
+        }
+        if (slot == 26) {
+            gui.toggleDefense(player);
+            return true;
+        }
+        if (slot == 35) {
+            gui.toggleAutoloot(player);
+            return true;
+        }
+        if (slot == 36) {
+            gui.decreaseFollowDistance(player);
+            return true;
+        }
+        if (slot == 38) {
+            gui.increaseFollowDistance(player);
+            return true;
+        }
+        if (slot == 17) {
+            gui.openHelpOverview(player, "pet");
+            return true;
+        }
+        if (slot == 52) {
+            player.closeInventory();
+            return true;
+        }
+        if (slot == 53) {
+            gui.startSourceTeleport(player);
+            return true;
+        }
+        return true;
+    }
 }

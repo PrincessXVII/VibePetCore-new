@@ -259,7 +259,7 @@ public final class PetGuiService implements Listener {
             }
             switch (holder.menuId()) {
                 case "main", "master" -> guiRouter.handleClick(holder.menuId(), player, event.getSlot());
-                case "pet" -> handlePetClick(player, event.getSlot());
+                case "pet" -> guiRouter.handleClick(holder.menuId(), player, event.getSlot());
                 default -> {
                     if (guiRouter.handleClick(holder.menuId(), player, event.getSlot())) {
                         return;
@@ -312,109 +312,6 @@ public final class PetGuiService implements Listener {
 
     private void openGrowthMissing(Player player, String source) {
         growthMissingPage.open(player, source);
-    }
-
-    private void handlePetClick(Player player, int slot) {
-        if (!allowPetMenuClick(player)) {
-            return;
-        }
-        if (slot == 24) {
-            if (repairCore(player)) {
-                openPetOverview(player);
-            }
-            return;
-        }
-        if (slot == 13) {
-            openCurrentPetGrowth(player, "pet");
-            return;
-        }
-        if (slot == 9) {
-            selectFollowPosition(player, 7);
-            return;
-        }
-        if (slot == 10) {
-            selectFollowPosition(player, 0);
-            return;
-        }
-        if (slot == 11) {
-            selectFollowPosition(player, 1);
-            return;
-        }
-        if (slot == 18) {
-            selectFollowPosition(player, 6);
-            return;
-        }
-        if (slot == 20) {
-            selectFollowPosition(player, 2);
-            return;
-        }
-        if (slot == 27) {
-            selectFollowPosition(player, 5);
-            return;
-        }
-        if (slot == 28) {
-            selectFollowPosition(player, 4);
-            return;
-        }
-        if (slot == 29) {
-            selectFollowPosition(player, 3);
-            return;
-        }
-        if (slot == 31) {
-            petEngineManager.openActivePetVault(player);
-            return;
-        }
-        if (slot == 32) {
-            togglePassiveEffect(player, PotionEffectType.NIGHT_VISION);
-            return;
-        }
-        if (slot == 33) {
-            togglePassiveEffect(player, PotionEffectType.SLOW_FALLING);
-            return;
-        }
-        if (slot == 34) {
-            togglePassiveEffect(player, PotionEffectType.INVISIBILITY);
-            return;
-        }
-        if (slot == 26) {
-            petEngineManager.toggleDefense(player);
-            syncOffhandEgg(player);
-            openPetOverview(player);
-            return;
-        }
-        if (slot == 35) {
-            petEngineManager.toggleAutoloot(player);
-            syncOffhandEgg(player);
-            openPetOverview(player);
-            return;
-        }
-        if (slot == 36) {
-            petEngineManager.decreaseFollowDistance(player);
-            syncOffhandEgg(player);
-            openPetOverview(player);
-            return;
-        }
-        if (slot == 38) {
-            petEngineManager.increaseFollowDistance(player);
-            syncOffhandEgg(player);
-            openPetOverview(player);
-            return;
-        }
-        if (slot == 17) {
-            openHelpOverview(player, "pet");
-            return;
-        }
-        if (slot == 52) {
-            player.closeInventory();
-            return;
-        }
-        if (slot == 53) {
-            petMasterManager.startSpawnMasterTeleport(player);
-            return;
-        }
-        if (slot == 49) {
-            return;
-        }
     }
 
     private void handleBackClick(Player player, String menuId) {
@@ -1035,7 +932,7 @@ public final class PetGuiService implements Listener {
         );
     }
 
-    private void togglePassiveEffect(Player player, PotionEffectType effectType) {
+    void togglePassiveEffect(Player player, PotionEffectType effectType) {
         if (petEngineManager.togglePassiveEffect(player, effectType)) {
             syncOffhandEgg(player);
             openPetOverview(player);
@@ -1065,7 +962,7 @@ public final class PetGuiService implements Listener {
         ));
     }
 
-    private void selectFollowPosition(Player player, int position) {
+    void selectFollowPosition(Player player, int position) {
         petEngineManager.setFollowPosition(player, position);
         syncOffhandEgg(player);
         openPetOverview(player);
@@ -1365,7 +1262,7 @@ public final class PetGuiService implements Listener {
             || (core.mainHand() && inventorySlot == player.getInventory().getHeldItemSlot());
     }
 
-    private boolean repairCore(Player player) {
+    boolean repairCore(Player player) {
         Optional<HeldPetCore> heldCore = heldPetCore(player);
         if (heldCore.isEmpty()) {
             player.sendMessage(GameText.coreRepairMissing());
@@ -1401,7 +1298,7 @@ public final class PetGuiService implements Listener {
         return true;
     }
 
-    private boolean allowPetMenuClick(Player player) {
+    boolean allowPetMenuClick(Player player) {
         long now = System.currentTimeMillis();
         petMenuClickCooldowns.entrySet().removeIf(entry -> entry.getValue() <= now);
         long nextAllowed = petMenuClickCooldowns.getOrDefault(player.getUniqueId(), 0L);
@@ -1410,6 +1307,38 @@ public final class PetGuiService implements Listener {
         }
         petMenuClickCooldowns.put(player.getUniqueId(), now + 1_500L);
         return true;
+    }
+
+    void openActivePetVault(Player player) {
+        petEngineManager.openActivePetVault(player);
+    }
+
+    void toggleDefense(Player player) {
+        petEngineManager.toggleDefense(player);
+        syncOffhandEgg(player);
+        openPetOverview(player);
+    }
+
+    void toggleAutoloot(Player player) {
+        petEngineManager.toggleAutoloot(player);
+        syncOffhandEgg(player);
+        openPetOverview(player);
+    }
+
+    void decreaseFollowDistance(Player player) {
+        petEngineManager.decreaseFollowDistance(player);
+        syncOffhandEgg(player);
+        openPetOverview(player);
+    }
+
+    void increaseFollowDistance(Player player) {
+        petEngineManager.increaseFollowDistance(player);
+        syncOffhandEgg(player);
+        openPetOverview(player);
+    }
+
+    void startSourceTeleport(Player player) {
+        petMasterManager.startSpawnMasterTeleport(player);
     }
 
     boolean allowGuiAction(Player player) {
