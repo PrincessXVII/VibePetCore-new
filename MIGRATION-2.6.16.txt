@@ -1,0 +1,10 @@
+VibePetCore 2.6.16
+
+What changed:
+- Follow/teleport fallback now checks extra safe positions around the player before using the player's exact location.
+- Stuck tracking treats sideways obstacle movement as progress, while still refusing to reset when the pet is clearly moving away from the owner.
+
+Admin notes:
+- No config migration is required.
+- Smoke check: put a ground pet behind fences/slabs/doors, sprint away, then confirm it side-steps or returns without repeated jitter/teleport loops.
+- Also test tight rooms: recall pet, switch follow positions, and confirm it does not appear inside the player unless no safe nearby position exists.

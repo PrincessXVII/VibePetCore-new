@@ -21,10 +21,11 @@ final class PetStuckSupport {
         boolean changedPosition = lastEntityLocation != null && lastEntityLocation.getWorld() != null && lastEntityLocation.getWorld().equals(current.getWorld())
             && movedEnoughForProgress(lastEntityLocation, current, type);
         boolean movedTowardOwner = changedPosition && movedTowardOwner(lastEntityLocation, current, owner);
+        boolean movedAwayFromOwner = changedPosition && movedAwayFromOwner(lastEntityLocation, current, owner);
         boolean reset = lastEntityLocation == null
             || lastEntityLocation.getWorld() == null
             || !lastEntityLocation.getWorld().equals(current.getWorld())
-            || movedTowardOwner;
+            || shouldResetTracking(changedPosition, movedTowardOwner, movedAwayFromOwner);
         return new StuckSnapshot(current.clone(), now, lastEntityMoveMillis, reset);
     }
 
@@ -81,6 +82,19 @@ final class PetStuckSupport {
         double previousDistance = horizontalDistanceSquared(previous, owner.getLocation());
         double currentDistance = horizontalDistanceSquared(current, owner.getLocation());
         return currentDistance + 0.20D < previousDistance;
+    }
+
+    private static boolean movedAwayFromOwner(Location previous, Location current, Player owner) {
+        if (owner == null || owner.getWorld() == null || previous == null || current == null || !owner.getWorld().equals(current.getWorld())) {
+            return false;
+        }
+        double previousDistance = horizontalDistanceSquared(previous, owner.getLocation());
+        double currentDistance = horizontalDistanceSquared(current, owner.getLocation());
+        return currentDistance > previousDistance + 0.55D;
+    }
+
+    static boolean shouldResetTracking(boolean changedPosition, boolean movedTowardOwner, boolean movedAwayFromOwner) {
+        return changedPosition && (movedTowardOwner || !movedAwayFromOwner);
     }
 
     private static double horizontalDistanceSquared(Location first, Location second) {

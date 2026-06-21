@@ -108,6 +108,22 @@ final class PetFollowSupport {
                 }
             }
         }
+
+        double[] fallbackAngles = {0.0D, 90.0D, 180.0D, 270.0D, 45.0D, 135.0D, 225.0D, 315.0D};
+        double[] fallbackDistances = {1.4D, 2.0D, 2.6D};
+        for (double distance : fallbackDistances) {
+            for (double angleDegrees : fallbackAngles) {
+                double angle = Math.toRadians(angleDegrees);
+                Vector offset = forward.clone().multiply(Math.cos(angle) * distance)
+                    .add(side.clone().multiply(Math.sin(angle) * distance));
+                Location candidate = owner.getLocation().clone()
+                    .add(offset)
+                    .add(0.0D, height, 0.0D);
+                if (canSpawnAt.test(candidate)) {
+                    return candidate;
+                }
+            }
+        }
         return owner.getLocation();
     }
 
