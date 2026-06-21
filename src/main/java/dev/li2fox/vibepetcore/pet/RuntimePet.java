@@ -16,6 +16,8 @@ import org.bukkit.util.Vector;
 
 public final class RuntimePet {
     public static final String SPAWN_BYPASS_TAG = "vibepet_spawn_bypass";
+    private static final long COMFORT_THREAT_CHECK_BASE_MILLIS = 850L;
+    private static final int COMFORT_THREAT_CHECK_JITTER_MILLIS = 350;
     private final OwnedPetData data;
     private final PetType type;
     private LivingEntity entity;
@@ -47,6 +49,7 @@ public final class RuntimePet {
     private long nextSocialActionMillis;
     private PetType temporaryFormType;
     private long temporaryFormUntilMillis;
+    private long nextComfortThreatCheckMillis;
     private UUID staticEntitySyncId;
     private PetType staticEntitySyncType;
     private int staticEntitySyncEvolutionStage;
@@ -150,6 +153,7 @@ public final class RuntimePet {
     public void despawn() {
         temporaryFormType = null;
         temporaryFormUntilMillis = 0L;
+        nextComfortThreatCheckMillis = 0L;
         resetEntitySyncCache();
         removeEntity();
     }
@@ -210,7 +214,7 @@ public final class RuntimePet {
         PetType runtimeType = effectiveType();
         updateOwnerMovement(owner);
         syncStaticEntityStateIfNeeded(owner, config, runtimeType);
-        boolean comfortResting = PetCompanionComfortSupport.keepResting(owner, entity, runtimeType, data, abilityService);
+        boolean comfortResting = PetCompanionComfortSupport.keepResting(owner, entity, runtimeType, data, comfortThreatScanner(abilityService));
         if (!comfortResting) {
             applyVisualStateIfNeeded(false);
         }
@@ -515,6 +519,23 @@ public final class RuntimePet {
         temporaryFormType = null;
         temporaryFormUntilMillis = 0L;
         spawn(owner, config, location, false);
+    }
+
+    private PetAbilityService comfortThreatScanner(PetAbilityService abilityService) {
+        if (!PetCompanionComfortSupport.comfortRestRequested(data) || abilityService == null) {
+            return null;
+        }
+        long now = System.currentTimeMillis();
+        if (now < nextComfortThreatCheckMillis) {
+            return null;
+        }
+        nextComfortThreatCheckMillis = now + comfortThreatCheckDelayMillis(data.petId());
+        return abilityService;
+    }
+
+    static long comfortThreatCheckDelayMillis(UUID petId) {
+        return COMFORT_THREAT_CHECK_BASE_MILLIS
+            + Math.floorMod(petId.hashCode(), COMFORT_THREAT_CHECK_JITTER_MILLIS);
     }
 
     boolean isAttackTarget(Entity target) {

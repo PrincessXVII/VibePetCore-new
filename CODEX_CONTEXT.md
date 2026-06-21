@@ -58,6 +58,10 @@
 - Не переносить все страницы одним большим патчем; после каждой страницы запускать `compileJava test`.
 
 ## Последние важные изменения
+- `2.6.15`
+  - comfort-rest больше не вызывает `nearestEnemy()` на каждом pet-update tick;
+  - проверка угроз для отдыхающего питомца throttled примерно до 0.85-1.2 сек с jitter по petId, чтобы не создавать nearbyEntities bursts;
+  - добавлен unit-тест на стабильный диапазон delay threat-check.
 - `2.6.14`
   - runtime-пит больше не применяет static entity state каждый update: owner-collision exemption, empty hands, persistent appearance и scale кэшируются по entity/type/evolution;
   - custom name питомца обновляется только при смене petName/type/rarity/evolution/level, а не на каждом pet-update tick;

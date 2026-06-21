@@ -1,0 +1,10 @@
+VibePetCore 2.6.15
+
+What changed:
+- Comfort-rest threat checks are throttled instead of calling nearestEnemy() on every pet-update tick.
+- The delay is stable per pet and jittered across pets to avoid nearbyEntities bursts.
+
+Admin notes:
+- No config migration is required.
+- Smoke check: put a pet into rest/comfort mode, spawn a hostile mob nearby, and confirm the pet exits rest within about one second.
+- Watch timings/spark for pet-update with many resting pets.
