@@ -11,6 +11,8 @@ enum GuiPageId {
     SOURCE_LEGENDARY("legendary", Set.of("legendary"), true),
     SOURCE_HELP("help", Set.of("help"), true),
     PET_ARMOR_HELP("petarmor", Set.of("petarmor"), true),
+    GROWTH_MISSING("growth", Set.of("growth"), true),
+    PET_INFO("petinfo", Set.of("petinfo"), true),
     PET_OVERVIEW("pet", Set.of("pet"), false);
 
     private final String menuId;

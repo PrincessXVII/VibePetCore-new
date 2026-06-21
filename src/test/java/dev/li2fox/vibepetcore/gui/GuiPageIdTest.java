@@ -25,6 +25,10 @@ final class GuiPageIdTest {
         assertEquals(GuiPageId.SOURCE_HELP, GuiPageId.fromMenuId("help:pet").orElseThrow());
         assertEquals(GuiPageId.PET_ARMOR_HELP, GuiPageId.fromMenuId("petarmor:master").orElseThrow());
         assertEquals(GuiPageId.PET_ARMOR_HELP, GuiPageId.fromMenuId("petarmor:pet").orElseThrow());
+        assertEquals(GuiPageId.GROWTH_MISSING, GuiPageId.fromMenuId("growth:master").orElseThrow());
+        assertEquals(GuiPageId.GROWTH_MISSING, GuiPageId.fromMenuId("growth:pet").orElseThrow());
+        assertEquals(GuiPageId.PET_INFO, GuiPageId.fromMenuId("petinfo:master:wolf").orElseThrow());
+        assertEquals(GuiPageId.PET_INFO, GuiPageId.fromMenuId("petinfo:pet:cat").orElseThrow());
     }
 
     @Test

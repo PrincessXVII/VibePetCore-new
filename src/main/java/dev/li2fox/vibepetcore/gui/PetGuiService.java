@@ -67,6 +67,8 @@ public final class PetGuiService implements Listener {
     private final SourceLegendaryPage sourceLegendaryPage;
     private final SourceHelpPage sourceHelpPage;
     private final PetArmorHelpPage petArmorHelpPage;
+    private final GrowthMissingPage growthMissingPage;
+    private final PetInfoPage petInfoPage;
     private final PetOverviewPage petOverviewPage;
     private final Map<UUID, Long> petMenuClickCooldowns = new java.util.HashMap<>();
     private final Map<UUID, Long> guiActionCooldowns = new java.util.HashMap<>();
@@ -98,6 +100,10 @@ public final class PetGuiService implements Listener {
         this.guiRouter.register(sourceHelpPage);
         this.petArmorHelpPage = new PetArmorHelpPage(this);
         this.guiRouter.register(petArmorHelpPage);
+        this.growthMissingPage = new GrowthMissingPage(this);
+        this.guiRouter.register(growthMissingPage);
+        this.petInfoPage = new PetInfoPage(this);
+        this.guiRouter.register(petInfoPage);
         this.petOverviewPage = new PetOverviewPage(this);
         this.guiRouter.register(petOverviewPage);
     }
@@ -230,42 +236,7 @@ public final class PetGuiService implements Listener {
     }
 
     void openPetInfo(Player player, String rawType, String source) {
-        PetType type = PetType.parse(rawType).orElse(PetType.WOLF);
-        String normalizedSource = normalizeSource(source);
-        Optional<OwnedPetData> petData = selectedPetForType(player, type);
-        int currentStage = petData.map(OwnedPetData::evolutionStage).orElse(1);
-
-        Inventory inventory = Bukkit.createInventory(
-            new PetGuiHolder("petinfo:" + normalizedSource + ":" + type.name().toLowerCase(Locale.ROOT)),
-            54,
-            title(GameText.petTypeName(type))
-        );
-        fillFrame(inventory);
-        inventory.setItem(4, item(eggMaterial(type), "&e" + GameText.petTypeName(type), infoGuiSupport.petInfoLore(type, petData)));
-        inventory.setItem(10, item(Material.COMPASS, "&e" + GameText.petInfoRoleTitle(), infoGuiSupport.roleDetails(type)));
-        inventory.setItem(16, item(Material.BOOK, "&e" + GameText.petInfoGuideTitle(), helpGuiSupport.helpCardLore(type)));
-        if (petData.isPresent()) {
-            List<String> evolveLore = new ArrayList<>(evolutionStageLore(player, type, currentStage, petData));
-            evolveLore.add("");
-            evolveLore.add(GameText.petInfoEvolutionActionHint());
-            inventory.setItem(22, item(Material.SCULK_SHRIEKER, "&d" + GameText.petOverviewEvolution(), evolveLore));
-        } else {
-            inventory.setItem(22, item(Material.BARRIER, "&c" + GameText.petOverviewEvolution(), List.of(
-                GameText.petInfoNeedCoreHint(),
-                GameText.guiUnavailable()
-            )));
-        }
-        int[] stageSlots = {29, 30, 31, 32, 33};
-        for (int stage = 1; stage <= 5; stage++) {
-            String title = stage == currentStage
-                ? "&a" + GameText.evolutionStageName(stage)
-                : "&e" + GameText.evolutionStageName(stage);
-            inventory.setItem(stageSlots[stage - 1], item(stageMaterial(stage), title, evolutionStageLore(player, type, stage, petData)));
-        }
-
-        inventory.setItem(49, back());
-        playMenuOpen(player, Sound.UI_BUTTON_CLICK, 0.6F, 1.1F);
-        player.openInventory(inventory);
+        petInfoPage.open(player, rawType, source);
     }
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onClick(InventoryClickEvent event) {
@@ -295,8 +266,6 @@ public final class PetGuiService implements Listener {
                     }
                     if (holder.menuId().startsWith("quests")) {
                         handleQuestClick(player, holder.menuId(), event.getSlot());
-                    } else if (holder.menuId().startsWith("petinfo")) {
-                        handlePetInfoClick(player, holder.menuId(), event.getSlot());
                     }
                 }
             }
@@ -342,17 +311,7 @@ public final class PetGuiService implements Listener {
     }
 
     private void openGrowthMissing(Player player, String source) {
-        String normalizedSource = normalizeSource(source);
-        Inventory inventory = Bukkit.createInventory(new PetGuiHolder("growth:" + normalizedSource), 27, title(GameText.mainMenuGrowthTitle()));
-        fillFrame(inventory);
-        inventory.setItem(13, item(Material.AMETHYST_CLUSTER, GameText.mainMenuGrowthTitle(), List.of(
-            msg("gui.growth.missing.line.one", "&7Select an active pet core first."),
-            msg("gui.growth.missing.line.two", "&7Summon a pet or hold its core in your hand."),
-            msg("gui.growth.missing.line.three", "&8This page shows level, bond, quests, and materials.")
-        )));
-        inventory.setItem(22, back());
-        playMenuOpen(player, Sound.UI_BUTTON_CLICK, 0.6F, 1.05F);
-        player.openInventory(inventory);
+        growthMissingPage.open(player, source);
     }
 
     private void handlePetClick(Player player, int slot) {
@@ -471,22 +430,12 @@ public final class PetGuiService implements Listener {
         petArmorHelpPage.open(player, source);
     }
 
-    private void handlePetInfoClick(Player player, String menuId, int slot) {
-        if (slot == 22) {
-            if (allowGuiAction(player)) {
-                petEngineManager.tryEvolveActivePet(player);
-                syncOffhandEgg(player);
-                openPetInfo(player, petInfoTypeFromMenu(menuId), petInfoSourceFromMenu(menuId));
-            }
-        }
-    }
-
-    private String petInfoSourceFromMenu(String menuId) {
+    String petInfoSourceFromMenu(String menuId) {
         String[] parts = menuId.split(":");
         return parts.length >= 3 ? normalizeSource(parts[1]) : "master";
     }
 
-    private String petInfoTypeFromMenu(String menuId) {
+    String petInfoTypeFromMenu(String menuId) {
         String[] parts = menuId.split(":");
         return parts.length >= 3 ? parts[2] : menuId.substring(menuId.indexOf(':') + 1);
     }
@@ -630,7 +579,7 @@ public final class PetGuiService implements Listener {
         return null;
     }
 
-    private Optional<OwnedPetData> selectedPetForType(Player player, PetType type) {
+    Optional<OwnedPetData> selectedPetForType(Player player, PetType type) {
         Optional<OwnedPetData> runtime = petEngineManager.getPet(player)
             .map(dev.li2fox.vibepetcore.pet.RuntimePet::data)
             .filter(pet -> pet.petType().equalsIgnoreCase(type.name()));
@@ -641,8 +590,12 @@ public final class PetGuiService implements Listener {
             .filter(pet -> pet.petType().equalsIgnoreCase(type.name()));
     }
 
-    private List<String> petInfoLore(PetType type, Optional<OwnedPetData> petData) {
+    List<String> petInfoLore(PetType type, Optional<OwnedPetData> petData) {
         return infoGuiSupport.petInfoLore(type, petData);
+    }
+
+    List<String> roleDetails(PetType type) {
+        return infoGuiSupport.roleDetails(type);
     }
 
     List<String> helpCardLore(PetType type) {
@@ -667,7 +620,7 @@ public final class PetGuiService implements Listener {
         return infoGuiSupport.detailedEvolutionLore(player, pet);
     }
 
-    private List<String> evolutionStageLore(Player player, PetType type, int currentStage, Optional<OwnedPetData> petData) {
+    List<String> evolutionStageLore(Player player, PetType type, int currentStage, Optional<OwnedPetData> petData) {
         return evolutionPreviewGuiSupport.evolutionStageLore(player, type, currentStage, petData);
     }
 
@@ -751,7 +704,7 @@ public final class PetGuiService implements Listener {
         boolean enabled = runtimePet.get().data().defenseEnabled();
         return item(Material.SHIELD, "&e" + GameText.petOverviewDefense(enabled), List.of(GameText.petOverviewDefenseHint()));
     }
-    private void syncOffhandEgg(Player player) {
+    void syncOffhandEgg(Player player) {
         petEngineManager.getPet(player).ifPresent(pet -> {
             heldPetCore(player)
                 .filter(core -> core.data().petId().equals(pet.data().petId()))
@@ -1322,7 +1275,7 @@ public final class PetGuiService implements Listener {
         return petEggService.eggMaterial(type);
     }
 
-    private Material stageMaterial(int stage) {
+    Material stageMaterial(int stage) {
         return switch (Math.max(1, Math.min(5, stage))) {
             case 1 -> Material.COPPER_INGOT;
             case 2 -> Material.IRON_INGOT;
@@ -1401,6 +1354,10 @@ public final class PetGuiService implements Listener {
         player.sendMessage(success ? GameText.forgeUpgradeSuccess(GameText.rarityName(petData.rarity())) : GameText.forgeUpgradeFail());
         player.playSound(player.getLocation(), success ? Sound.UI_TOAST_CHALLENGE_COMPLETE : Sound.BLOCK_ANVIL_LAND, 0.75F, success ? 1.1F : 0.8F);
         openRarityForge(player, source);
+    }
+
+    void tryEvolveActivePet(Player player) {
+        petEngineManager.tryEvolveActivePet(player);
     }
 
     private boolean isRarityForgeTargetCore(Player player, HeldPetCore core, int inventorySlot, OwnedPetData donor) {
