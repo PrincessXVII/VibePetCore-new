@@ -63,6 +63,8 @@ public final class PetGuiService implements Listener {
     private final PetEvolutionPreviewGuiSupport evolutionPreviewGuiSupport;
     private final PetGuiRouter guiRouter;
     private final SourceBoxPage sourceBoxPage;
+    private final SourceForgePage sourceForgePage;
+    private final SourceLegendaryPage sourceLegendaryPage;
     private final PetOverviewPage petOverviewPage;
     private final Map<UUID, Long> petMenuClickCooldowns = new java.util.HashMap<>();
     private final Map<UUID, Long> guiActionCooldowns = new java.util.HashMap<>();
@@ -86,6 +88,10 @@ public final class PetGuiService implements Listener {
         this.guiRouter.register(new SourceMainPage(this));
         this.sourceBoxPage = new SourceBoxPage(this);
         this.guiRouter.register(sourceBoxPage);
+        this.sourceForgePage = new SourceForgePage(this);
+        this.guiRouter.register(sourceForgePage);
+        this.sourceLegendaryPage = new SourceLegendaryPage(this);
+        this.guiRouter.register(sourceLegendaryPage);
         this.petOverviewPage = new PetOverviewPage(this);
         this.guiRouter.register(petOverviewPage);
     }
@@ -200,38 +206,7 @@ public final class PetGuiService implements Listener {
     }
 
     void openRarityForge(Player player, String source) {
-        Inventory inventory = Bukkit.createInventory(new PetGuiHolder("forge:" + normalizeSource(source)), 54, title(GameText.guiTitleForge()));
-        fillFrame(inventory);
-
-        Optional<OwnedPetData> base = heldPetData(player);
-        inventory.setItem(13, base
-            .map(pet -> item(
-                eggMaterial(PetType.parse(pet.petType()).orElse(PetType.WOLF)),
-                "&b" + pet.petName(),
-                rarityForgeCoreLore(player, pet)
-            ))
-            .orElseGet(() -> item(Material.BARRIER, "&c" + GameText.petOverviewNoCore(), List.of(
-                GameText.forgeNeedActiveCore(),
-                GameText.guiUnavailable()
-            ))));
-        inventory.setItem(22, base
-            .map(pet -> item(Material.ANVIL, "&a" + GameText.forgeUpgradeTitle(), rarityForgeAttemptLore(player, pet)))
-            .orElseGet(() -> item(Material.ANVIL, "&7" + GameText.forgeUpgradeTitle(), List.of(
-                GameText.forgeNeedActiveCore(),
-                GameText.guiUnavailable()
-            ))));
-        inventory.setItem(31, item(Material.BOOK, "&e" + GameText.forgeInfoTitle(), List.of(
-            GameText.forgeInfoLineOne(),
-            GameText.forgeInfoLineTwo(),
-            GameText.forgeInfoLineThree(),
-            GameText.forgeInfoLineFour()
-        )));
-        inventory.setItem(40, item(Material.CHEST, "&6" + GameText.forgeDonorChestTitle(), List.of(
-            GameText.forgeDonorChestHint()
-        )));
-        inventory.setItem(49, back());
-        playMenuOpen(player, Sound.BLOCK_ANVIL_USE, 0.7F, 1.1F);
-        player.openInventory(inventory);
+        sourceForgePage.open(player, source);
     }
     private void openPetOverview(Player player) {
         guiRouter.open(GuiPageId.PET_OVERVIEW, player);
@@ -261,25 +236,7 @@ public final class PetGuiService implements Listener {
     }
 
     void openLegendaryFeatures(Player player, String source) {
-        String normalizedSource = normalizeSource(source);
-        Inventory inventory = Bukkit.createInventory(new PetGuiHolder("legendary:" + normalizedSource), 54, title(msg("gui.legendary.title", "&dLegendary traits")));
-        fillFrame(inventory);
-        inventory.setItem(4, item(Material.CALIBRATED_SCULK_SENSOR, msg("gui.legendary.header.title", "&dLegendary traits"), List.of(
-            msg("gui.legendary.header.line.one", "&7These effects work only for legendary pets."),
-            msg("gui.legendary.header.line.two", "&7Most traits have a 300 sec cooldown and trigger in combat."),
-            msg("gui.legendary.header.line.three", "&8Allay keeps its own Vex form logic.")
-        )));
-
-        int[] petSlots = petHelpSlots();
-        List<PetType> types = playablePetTypes();
-        for (int index = 0; index < petSlots.length && index < types.size(); index++) {
-            PetType type = types.get(index);
-            inventory.setItem(petSlots[index], item(eggMaterial(type), "&d" + GameText.petTypeName(type), legendaryLore(type)));
-        }
-
-        inventory.setItem(49, back());
-        playMenuOpen(player, Sound.BLOCK_SCULK_SENSOR_CLICKING, 0.6F, 1.15F);
-        player.openInventory(inventory);
+        sourceLegendaryPage.open(player, source);
     }
 
     private void openPetInfo(Player player, String rawType) {
@@ -350,13 +307,7 @@ public final class PetGuiService implements Listener {
                     if (guiRouter.handleClick(holder.menuId(), player, event.getSlot())) {
                         return;
                     }
-                    if (holder.menuId().startsWith("forge")) {
-                        if (event.getSlot() == 22) {
-                            if (allowGuiAction(player)) {
-                                attemptRarityUpgrade(player, sourceFromMenu(holder.menuId()));
-                            }
-                        }
-                    } else if (holder.menuId().startsWith("quests")) {
+                    if (holder.menuId().startsWith("quests")) {
                         handleQuestClick(player, holder.menuId(), event.getSlot());
                     } else if (holder.menuId().startsWith("help")) {
                         handleHelpClick(player, holder.menuId(), event.getSlot());
@@ -721,7 +672,7 @@ public final class PetGuiService implements Listener {
         return petTypeBySlot(slot, petHelpSlots());
     }
 
-    private int[] petHelpSlots() {
+    int[] petHelpSlots() {
         return new int[]{19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38};
     }
 
@@ -750,7 +701,7 @@ public final class PetGuiService implements Listener {
         return infoGuiSupport.petInfoLore(type, petData);
     }
 
-    private List<String> legendaryLore(PetType type) {
+    List<String> legendaryLore(PetType type) {
         List<String> lore = new ArrayList<>();
         lore.add(msg("gui.legendary.requirement", "&7Only for: &dLegendary &7pets, usually &fE3+&7."));
         lore.add(msg("gui.legendary.cooldown", "&7Cooldown: &f300 sec&7 after a successful proc."));
@@ -1320,7 +1271,7 @@ public final class PetGuiService implements Listener {
         return Math.round(chance * 100.0D) + "%";
     }
 
-    private List<String> rarityForgeCoreLore(Player player, OwnedPetData pet) {
+    List<String> rarityForgeCoreLore(Player player, OwnedPetData pet) {
         PetType type = PetType.parse(pet.petType()).orElse(PetType.WOLF);
         PetRarity rarity = PetRarity.parse(pet.rarity());
         double chancePercent = balanceConfig.eggRarityUpgradeChance(rarity.name().toLowerCase(Locale.ROOT)) * 100.0D;
@@ -1340,7 +1291,7 @@ public final class PetGuiService implements Listener {
         return lore;
     }
 
-    private List<String> rarityForgeAttemptLore(Player player, OwnedPetData pet) {
+    List<String> rarityForgeAttemptLore(Player player, OwnedPetData pet) {
         PetRarity rarity = PetRarity.parse(pet.rarity());
         if (!rarity.canUpgrade()) {
             return List.of(
@@ -1409,13 +1360,13 @@ public final class PetGuiService implements Listener {
         return lore;
     }
 
-    private List<PetType> playablePetTypes() {
+    List<PetType> playablePetTypes() {
         return Arrays.stream(PetType.values())
             .filter(type -> type != PetType.VEX)
             .toList();
     }
 
-    private Material eggMaterial(PetType type) {
+    Material eggMaterial(PetType type) {
         return petEggService.eggMaterial(type);
     }
 
@@ -1434,7 +1385,7 @@ public final class PetGuiService implements Listener {
         attemptRarityUpgrade(player, "master");
     }
 
-    private void attemptRarityUpgrade(Player player, String source) {
+    void attemptRarityUpgrade(Player player, String source) {
         Optional<HeldPetCore> heldCore = heldPetCore(player);
         if (heldCore.isEmpty()) {
             player.sendMessage(GameText.forgeNeedActiveCore());

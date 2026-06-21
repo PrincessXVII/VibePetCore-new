@@ -7,6 +7,8 @@ import java.util.Set;
 enum GuiPageId {
     SOURCE_MAIN("master", Set.of("main", "master"), false),
     SOURCE_BOX("box", Set.of("box"), true),
+    SOURCE_FORGE("forge", Set.of("forge"), true),
+    SOURCE_LEGENDARY("legendary", Set.of("legendary"), true),
     PET_OVERVIEW("pet", Set.of("pet"), false);
 
     private final String menuId;

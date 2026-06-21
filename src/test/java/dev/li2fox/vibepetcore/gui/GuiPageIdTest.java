@@ -17,6 +17,10 @@ final class GuiPageIdTest {
     void resolvesPrefixPageIds() {
         assertEquals(GuiPageId.SOURCE_BOX, GuiPageId.fromMenuId("box:master").orElseThrow());
         assertEquals(GuiPageId.SOURCE_BOX, GuiPageId.fromMenuId("box:pet").orElseThrow());
+        assertEquals(GuiPageId.SOURCE_FORGE, GuiPageId.fromMenuId("forge:master").orElseThrow());
+        assertEquals(GuiPageId.SOURCE_FORGE, GuiPageId.fromMenuId("forge:pet").orElseThrow());
+        assertEquals(GuiPageId.SOURCE_LEGENDARY, GuiPageId.fromMenuId("legendary:master").orElseThrow());
+        assertEquals(GuiPageId.SOURCE_LEGENDARY, GuiPageId.fromMenuId("legendary:pet").orElseThrow());
     }
 
     @Test
