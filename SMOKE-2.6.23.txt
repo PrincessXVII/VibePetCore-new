@@ -28,7 +28,7 @@ Purpur startup smoke:
 Expected smoke warnings:
 - MySQL was not available in the clean smoke server, so VibePetCore fell back to json storage.
 - The smoke server was intentionally started in offline mode on port 25567.
-- The early stdin "stop" command hit a Purpur command-source NullPointerException after startup. This is not from VibePetCore, but it prevented graceful shutdown; the smoke process was stopped by exact java process id.
+- The stdin "stop" command hit a Purpur command-source NullPointerException after startup when run through redirected console input. This is not from VibePetCore, but it prevented graceful shutdown; the smoke process was stopped by exact java process id.
 
 Not covered by this smoke:
 - In-game right-click flows: offhand core summon/sync/relog, Source GUI, /pet GUI, evolution click, feeding item click, armor apply.
