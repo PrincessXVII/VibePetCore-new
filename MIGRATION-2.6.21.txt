@@ -1,0 +1,11 @@
+# VibePetCore 2.6.21
+
+## What changed
+- Basic Pet Source box opening now saves cost/cooldown/pity state before issuing the pet egg reward.
+- If player-data save fails, the opening state is rolled back in memory and no reward is issued.
+- Players now receive a clear retry message instead of a silent failed opening.
+
+## Server action
+- No data migration is required.
+- Re-test `/pet box open` near the Pet Source with normal storage.
+- For failure testing, temporarily force player-data save to fail and verify no egg is issued and points/cooldown/pity do not advance.

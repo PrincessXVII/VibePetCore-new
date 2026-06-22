@@ -53,4 +53,8 @@ public final class EconomyManager implements CoreModule {
     public PlayerData data(UUID playerId) {
         return playerDataManager.getOrLoad(playerId);
     }
+
+    public boolean save(UUID playerId) {
+        return playerDataManager.save(playerId);
+    }
 }

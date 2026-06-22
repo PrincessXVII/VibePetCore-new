@@ -42,10 +42,12 @@ public final class BoxManager {
             return new BoxOpenResult(false, config.message("box.open.inventory-full", "Free one inventory slot before opening a box."), null, null, false);
         }
 
-        PlayerData data = economyManager.data(player.getUniqueId());
+        UUID playerId = player.getUniqueId();
+        PlayerData data = economyManager.data(playerId);
+        BasicOpenStateSnapshot previousState = snapshotBasicOpenState(data);
         if (data.freeBoxNextAtMillis() <= now) {
             data.setFreeBoxNextAtMillis(now + config.boxFreeCooldownMillis(BASIC_BOX));
-        } else if (!economyManager.take(player.getUniqueId(), Math.max(1L, config.boxCost(BASIC_BOX))) && !data.takeExtraBoxAttempt()) {
+        } else if (!economyManager.take(playerId, Math.max(1L, config.boxCost(BASIC_BOX))) && !data.takeExtraBoxAttempt()) {
             long minutes = Math.max(1L, (data.freeBoxNextAtMillis() - now) / 60_000L);
             return new BoxOpenResult(false, config.message(
                 "box.open.no-attempts",
@@ -58,8 +60,16 @@ public final class BoxManager {
         boolean pity = pityCount >= config.boxPityThreshold(BASIC_BOX);
         PetRarity rarity = pity && config.boxGuaranteeOnlyRare(BASIC_BOX) ? PetRarity.RARE : rollRarity();
         data.boxPity().put(BASIC_BOX, rarity == PetRarity.RARE ? 0 : pityCount);
-        data.statistics().addBoxOpened();
 
+        if (!economyManager.save(playerId)) {
+            rollbackBasicOpenState(data, previousState);
+            return new BoxOpenResult(false, config.message(
+                "box.open.save-failed",
+                "Could not save the source opening. No reward was issued. Try again in a few seconds."
+            ), null, null, false);
+        }
+
+        data.statistics().addBoxOpened();
         PetType petType = randomPetType();
         player.getInventory().addItem(petEggService.createEgg(petType, rarity, petType.displayName()));
         String messageKey = pity ? "box.open.success-pity" : "box.open.success";
@@ -84,6 +94,39 @@ public final class BoxManager {
         return false;
     }
 
+    static BasicOpenStateSnapshot snapshotBasicOpenState(PlayerData data) {
+        return new BasicOpenStateSnapshot(
+            data.points(),
+            data.freeBoxNextAtMillis(),
+            data.extraBoxAttempts(),
+            data.boxPity().containsKey(BASIC_BOX),
+            data.boxPity().getOrDefault(BASIC_BOX, 0)
+        );
+    }
+
+    static void rollbackBasicOpenState(PlayerData data, BasicOpenStateSnapshot snapshot) {
+        long pointDelta = snapshot.points() - data.points();
+        if (pointDelta > 0L) {
+            data.addPoints(pointDelta);
+        } else if (pointDelta < 0L) {
+            data.takePoints(-pointDelta);
+        }
+
+        data.setFreeBoxNextAtMillis(snapshot.freeBoxNextAtMillis());
+        while (data.extraBoxAttempts() < snapshot.extraBoxAttempts()) {
+            data.addExtraBoxAttempt();
+        }
+        while (data.extraBoxAttempts() > snapshot.extraBoxAttempts()) {
+            data.takeExtraBoxAttempt();
+        }
+
+        if (snapshot.hadPity()) {
+            data.boxPity().put(BASIC_BOX, snapshot.pityCount());
+        } else {
+            data.boxPity().remove(BASIC_BOX);
+        }
+    }
+
     private PetRarity rollRarity() {
         double roll = ThreadLocalRandom.current().nextDouble();
         double rare = config.boxRarityChance(BASIC_BOX, "rare");
@@ -102,5 +145,8 @@ public final class BoxManager {
             values = new PetType[] {PetType.WOLF};
         }
         return values[ThreadLocalRandom.current().nextInt(values.length)];
+    }
+
+    record BasicOpenStateSnapshot(long points, long freeBoxNextAtMillis, int extraBoxAttempts, boolean hadPity, int pityCount) {
     }
 }
