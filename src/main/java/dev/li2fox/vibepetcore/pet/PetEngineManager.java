@@ -167,15 +167,23 @@ public final class PetEngineManager implements CoreModule {
         return runtimePet;
     }
 
-    public RuntimePet activatePet(Player player, OwnedPetData petData) {
+    public Optional<RuntimePet> activatePet(Player player, OwnedPetData petData) {
         return activatePet(player, petData, null);
     }
 
-    public RuntimePet activatePet(Player player, OwnedPetData petData, Location summonLocation) {
+    public Optional<RuntimePet> activatePet(Player player, OwnedPetData petData, Location summonLocation) {
         if (!balanceConfig.worldPetsEnabled(player.getWorld().getName())) {
             debugLogger.debug("world", "Blocked pet activation for " + player.getName() + " in " + player.getWorld().getName());
             throw new IllegalArgumentException("Pets are disabled in world: " + player.getWorld().getName());
         }
+        UUID playerId = player.getUniqueId();
+        PlayerData playerData = playerDataManager.getOrLoad(playerId);
+        Optional<UUID> previousActivePetId = playerData.activePetId();
+        OwnedPetData previousStoredPet = playerData.pets().stream()
+            .filter(stored -> stored.petId().equals(petData.petId()))
+            .findFirst()
+            .map(PetEngineManager::snapshotPet)
+            .orElse(null);
         petData.setOwnerId(player.getUniqueId());
         PetType type = PetType.parse(petData.petType()).orElseThrow(() -> new IllegalArgumentException("Unknown pet type: " + petData.petType()));
         if (!balanceConfig.petEnabled(type)) {
@@ -190,8 +198,14 @@ public final class PetEngineManager implements CoreModule {
             }
             existing.refreshName();
             rememberActivePet(player, existing.data());
-            playerDataManager.save(player.getUniqueId());
-            return existing;
+            if (!playerDataManager.save(playerId)) {
+                rollbackFailedActivation(playerData, petData.petId(), previousActivePetId, previousStoredPet);
+                if (previousActivePetId.filter(id -> id.equals(petData.petId())).isEmpty()) {
+                    despawnPet(player);
+                }
+                return Optional.empty();
+            }
+            return Optional.of(existing);
         }
         OwnedPetData storedPet = storedOrIncomingPetData(player, petData);
         RuntimePet runtimePet = new RuntimePet(storedPet, type);
@@ -199,12 +213,16 @@ public final class PetEngineManager implements CoreModule {
         if (runtimePet.entity().isEmpty()) {
             throw new IllegalArgumentException(msg("pet.spawn.failed-location", "Could not spawn pet in this location."));
         }
-        despawnPet(player);
         rememberActivePet(player, runtimePet.data());
-        activePets.put(player.getUniqueId(), runtimePet);
-        playerDataManager.save(player.getUniqueId());
+        if (!playerDataManager.save(playerId)) {
+            rollbackFailedActivation(playerData, runtimePet.data().petId(), previousActivePetId, previousStoredPet);
+            runtimePet.despawn();
+            return Optional.empty();
+        }
+        despawnPet(player);
+        activePets.put(playerId, runtimePet);
         showActionBar(player, 2_500L);
-        return runtimePet;
+        return Optional.of(runtimePet);
     }
 
     public Optional<UUID> activePetId(Player player) {
@@ -1518,6 +1536,30 @@ public final class PetEngineManager implements CoreModule {
             .findFirst()
             .ifPresentOrElse(stored -> stored.copyProgressionFrom(petData), () -> playerData.pets().add(petData));
         playerData.setActivePetId(petData.petId());
+    }
+
+    static OwnedPetData snapshotPet(OwnedPetData source) {
+        OwnedPetData snapshot = new OwnedPetData(source.petId(), source.ownerId(), source.petType(), source.rarity());
+        restorePet(snapshot, source);
+        return snapshot;
+    }
+
+    static void rollbackFailedActivation(PlayerData playerData, UUID activatedPetId, Optional<UUID> previousActivePetId, OwnedPetData previousStoredPet) {
+        playerData.setActivePetId(previousActivePetId.orElse(null));
+        if (previousStoredPet == null) {
+            playerData.pets().removeIf(pet -> pet.petId().equals(activatedPetId));
+            return;
+        }
+        playerData.pets().stream()
+            .filter(stored -> stored.petId().equals(activatedPetId))
+            .findFirst()
+            .ifPresentOrElse(stored -> restorePet(stored, previousStoredPet), () -> playerData.pets().add(previousStoredPet));
+    }
+
+    private static void restorePet(OwnedPetData target, OwnedPetData source) {
+        target.copyProgressionFrom(source);
+        target.setOwnerId(source.ownerId());
+        target.setState(source.state());
     }
 
     public int activePetCount() {

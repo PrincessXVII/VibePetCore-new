@@ -1,0 +1,11 @@
+# VibePetCore 2.6.20
+
+## What changed
+- Pet activation now treats the active-state save as mandatory before changing the core item.
+- If storage save fails during activation, runtime pet spawn and in-memory active state are rolled back.
+- The player keeps the filled core and receives a clear retry message instead of getting a fake active button.
+
+## Server action
+- No data migration is required.
+- Re-test offhand summon with normal storage.
+- For failure testing, temporarily force player-data storage save to fail and verify the core item stays filled and no runtime pet remains active.

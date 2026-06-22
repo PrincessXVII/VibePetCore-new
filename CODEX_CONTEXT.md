@@ -58,6 +58,10 @@
 - Не переносить все страницы одним большим патчем; после каждой страницы запускать `compileJava test`.
 
 ## Последние важные изменения
+- `2.6.20`
+  - активация питомца теперь считает save активного состояния обязательным: без успешного save предмет не меняется на active-button/empty-core;
+  - при save-fail во время активации откатываются `activePetId`, in-memory pet data и runtime-spawn, игрок видит понятное сообщение повторить позже;
+  - добавлен regression-тест на rollback-контракт без Bukkit server.
 - `2.6.19`
   - `PetEggController.syncPlayer()` больше не поднимает и не удерживает runtime-питомца по ядру из обычного слота инвентаря;
   - активный runtime требует matching core/active-button в offhand slot 40, иначе runtime скрывается и `activePetId` очищается через обычный save-flow;

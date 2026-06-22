@@ -346,26 +346,26 @@ public final class PetEggController implements CoreModule, Listener {
             return;
         }
 
+        if (firstSummon) {
+            pet.progress().put("first_summon_done", 1);
+        }
         try {
-            petEngineManager.activatePet(player, pet, summonAnchor);
-            OwnedPetData activeData = petEngineManager.activePetData(player).orElse(pet);
-            if (firstSummon) {
-                activeData.progress().put("first_summon_done", 1);
-                playFirstSummonFinish(player, summonAnchor);
-            }
-            if (!petEngineManager.flushPetData(player)) {
+            if (petEngineManager.activatePet(player, pet, summonAnchor).isEmpty()) {
                 debugLogger.warnRateLimited(
                     "egg:activate-save:" + player.getUniqueId() + ":" + pet.petId(),
                     "pet-egg",
                     "Pet activation save failed for " + player.getName() + ", keeping core filled.",
                     10_000L
                 );
-                petEngineManager.clearActivePet(player);
                 player.sendActionBar(Component.text(msg(
                     "pet-egg.save-failed",
                     "Could not save pet data. Try again in a moment."
                 )));
                 return;
+            }
+            OwnedPetData activeData = petEngineManager.activePetData(player).orElse(pet);
+            if (firstSummon) {
+                playFirstSummonFinish(player, summonAnchor);
             }
             setItemInHand(player, hand, hand == EquipmentSlot.OFF_HAND
                 ? eggService.writeActiveButton(heldItem, activeData)
