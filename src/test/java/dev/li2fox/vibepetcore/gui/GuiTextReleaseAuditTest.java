@@ -28,6 +28,21 @@ final class GuiTextReleaseAuditTest {
         assertFalse(checklist.contains("\u041f\u0435\u0442-\u041c\u0430\u0441\u0442\u0435\u0440"));
     }
 
+    @Test
+    void petMovementTextsDoNotPromiseMissingGuiModeToggle() throws IOException {
+        String checklist = read("TEST_CHECKLIST.md");
+        assertFalse(checklist.contains("\u043a\u043d\u043e\u043f\u043a\u0430 `\u0420\u0435\u0436\u0438\u043c \u0434\u0432\u0438\u0436\u0435\u043d\u0438\u044f`"));
+        assertTrue(checklist.contains("\u043f\u043e\u0437\u0438\u0446\u0438\u0438 0-7"));
+        assertTrue(checklist.contains("`/pet stay` \u0438 `/pet follow`"));
+
+        String ruMessages = read("src/main/resources/messages/ru.yml");
+        String enMessages = read("src/main/resources/messages/en.yml");
+        assertFalse(ruMessages.contains("\u041a\u0440\u0430\u0441\u043d\u044b\u0435 \u0438 \u0437\u0435\u043b\u0451\u043d\u044b\u0435 \u043a\u043d\u043e\u043f\u043a\u0438 \u043c\u0435\u043d\u044f\u044e\u0442 \u0440\u0435\u0436\u0438\u043c"));
+        assertFalse(enMessages.contains("Red and green choose the mode"));
+        assertTrue(ruMessages.contains("\u0411\u043b\u0438\u0436\u0435/\u0414\u0430\u043b\u044c\u0448\u0435 \u043c\u0435\u043d\u044f\u044e\u0442 \u0434\u0438\u0441\u0442\u0430\u043d\u0446\u0438\u044e"));
+        assertTrue(enMessages.contains("Closer/Further changes distance"));
+    }
+
     private static void assertNoBondVocabulary(String line, String source) {
         String lower = line.toLowerCase(Locale.ROOT);
         assertFalse(lower.contains("bond"), source + " should keep bond details inside the evolution page");

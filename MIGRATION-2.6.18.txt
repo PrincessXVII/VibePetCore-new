@@ -1,0 +1,10 @@
+# VibePetCore 2.6.18
+
+## What changed
+- `/pet` overview text now matches the actual movement controls.
+- The GUI no longer implies that red/green buttons toggle movement mode.
+- `TEST_CHECKLIST.md` now checks all eight follow positions and separates distance buttons from position buttons.
+
+## Server action
+- No data migration is required.
+- Re-test `/pet position`, `/pet stay`, `/pet follow`, and the `Ближе` / `Дальше` buttons on a live test server.

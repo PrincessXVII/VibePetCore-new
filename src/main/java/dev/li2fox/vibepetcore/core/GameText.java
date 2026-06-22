@@ -450,7 +450,7 @@ public final class GameText {
     public static String petOverviewStatusHint() { return msg("gui.pet.overview.status.hint", localized("&7Основные показатели активного ядра", "&7Key indicators for the active core")); }
     public static String petOverviewCallHint(boolean summoned) { return summoned ? msg("gui.pet.overview.call.active", localized("&aПитомец уже активен", "&aPet is already active")) : msg("gui.pet.overview.call.hint", localized("&7Призвать питомца из ядра", "&7Summon the pet from the core")); }
     public static String petOverviewControllerTitle() { return msg("gui.pet.overview.controller.title", localized("&bКонтроллер следования", "&bFollow controller")); }
-    public static String petOverviewControllerHint() { return msg("gui.pet.overview.controller.hint", localized("&7Красные и зелёные кнопки меняют режим, фиолетовые - позицию.", "&7Red and green choose the mode, purple buttons change the position.")); }
+    public static String petOverviewControllerHint() { return msg("gui.pet.overview.controller.hint", localized("&7Красные и зелёные стекла выбирают позицию вокруг игрока; факелы меняют дистанцию.", "&7Red and green panes choose the position around the player; torches change distance.")); }
     public static String petOverviewControllerCurrent(String position, String distance) { return msg("gui.pet.overview.controller.current", localized("&7Позиция: &f{position} &8| &7Дистанция: &f{distance}", "&7Position: &f{position} &8| &7Distance: &f{distance}"), "position", position, "distance", distance); }
     public static String petOverviewFollowDisabledTitle() { return msg("gui.pet.overview.follow.disabled.title", localized("&cПитомец ждёт", "&cPet is waiting")); }
     public static String petOverviewFollowDisabledHint() { return msg("gui.pet.overview.follow.disabled.hint", localized("&7Питомец стоит рядом и не следует за вами.", "&7The pet stands nearby and does not follow you.")); }
@@ -458,7 +458,7 @@ public final class GameText {
     public static String petOverviewFollowEnabledHint() { return msg("gui.pet.overview.follow.enabled.hint", localized("&7Питомец следует за вами, как разведчик.", "&7The pet follows you like a scout.")); }
     public static String petOverviewFollowBackTitle() { return msg("gui.pet.overview.follow.back.title", localized("&dБлиже", "&dCloser")); }
     public static String petOverviewFollowForwardTitle() { return msg("gui.pet.overview.follow.forward.title", localized("&dДальше", "&dFurther")); }
-    public static String petOverviewFollowDistanceHint() { return msg("gui.pet.overview.follow.distance-hint", localized("&7Фиолетовые кнопки меняют позицию и дистанцию в контроллере.", "&7Purple buttons move the position and distance in the controller.")); }
+    public static String petOverviewFollowDistanceHint() { return msg("gui.pet.overview.follow.distance-hint", localized("&7Кнопки позиции выбирают место; Ближе/Дальше меняют дистанцию.", "&7Position buttons choose the spot; Closer/Further changes distance.")); }
     public static String petOverviewSummonTitle() { return msg("gui.pet.overview.summon.title", localized("&eПризвать питомца", "&eSummon pet")); }
     public static String petOverviewSummonHint() { return msg("gui.pet.overview.summon.hint", localized("&7Питомец призывается в основную руку. Нажмите, чтобы вернуть его.", "&7The pet is summoned to your main hand. Click to bring it back.")); }
     public static String petOverviewAggressiveTitle() { return msg("gui.pet.overview.aggressive.title", localized("&6Боевой стиль", "&6Aggressive style")); }
