@@ -1,0 +1,10 @@
+# VibePetCore 2.6.23
+
+## What changed
+- Evolution items no longer trigger pet evolution through normal right-click feeding.
+- Clicking an active pet with `NETHER_STAR`, `ECHO_SHARD`, or `DIAMOND` now shows a short hint and does not consume the item.
+- Evolution remains available through the existing `/pet`, Source, and command flow with resource, stage quest, and chance checks.
+
+## Server action
+- No data migration is required.
+- Re-test normal feeding, full-satiety rejection, and evolution through the Source/GUI flow.

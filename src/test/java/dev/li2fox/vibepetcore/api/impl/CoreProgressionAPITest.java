@@ -46,6 +46,25 @@ final class CoreProgressionAPITest {
         assertEquals(5.0D, pet.satiety());
     }
 
+    @Test
+    void evolutionItemFeedingDoesNotAttemptEvolution() throws Exception {
+        CoreProgressionAPI progressionAPI = progressionApi();
+        OwnedPetData pet = pet();
+        pet.setLevel(3);
+        pet.setBond(4);
+        pet.setSatiety(3.0D);
+
+        FeedResult result = progressionAPI.feed(pet, Material.NETHER_STAR);
+
+        assertFalse(result.accepted());
+        assertEquals(FeedType.NONE, result.feedType());
+        assertFalse(result.evolutionResult().attempted());
+        assertEquals(1, pet.evolutionStage());
+        assertEquals(3, pet.level());
+        assertEquals(4, pet.bond());
+        assertEquals(3.0D, pet.satiety());
+    }
+
     private CoreProgressionAPI progressionApi() throws Exception {
         BalanceConfig balanceConfig = new BalanceConfig(null);
         setConfig(balanceConfig, config());
@@ -70,6 +89,8 @@ final class CoreProgressionAPITest {
         yaml.set("progression.feeding.xp-reward-percent", 1.0D);
         yaml.set("progression.feeding.growth-boost-duration-ticks", 1200);
         yaml.set("progression.feeding.growth-boost-multiplier", 1.5D);
+        yaml.set("progression.evolution.stages.2.required-level", 3);
+        yaml.set("progression.evolution.stages.2.required-bond", 4);
         yaml.set("progression.feeding.common-foods", List.of("APPLE"));
         yaml.set("progression.feeding.rare-resources", List.of("EMERALD"));
         yaml.set("progression.feeding.evolution-items", List.of("NETHER_STAR"));

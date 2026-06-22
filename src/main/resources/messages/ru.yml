@@ -957,6 +957,7 @@ pet.evolution.max-success: "Питомец достиг максимальной
 feed.common-food: "Питомец поел."
 feed.evolution.failed: "Эволюция не удалась."
 feed.evolution.not-ready: "Питомец ещё не готов к эволюции."
+feed.evolution.source-only: "Эволюция открывается через /pet или Источник."
 feed.evolution.success: "Эволюция успешна."
 feed.food.heal: "Питомец поел."
 feed.food.satiety: "Питомец поел. Сытость восстановлена."

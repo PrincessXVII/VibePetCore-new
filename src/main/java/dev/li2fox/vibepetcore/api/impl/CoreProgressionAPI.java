@@ -152,12 +152,7 @@ public final class CoreProgressionAPI implements ProgressionAPI {
         }
 
         if (balanceConfig.isEvolutionItem(material)) {
-            EvolutionResult evolutionResult = tryEvolve(pet);
-            if (!evolutionResult.attempted()) {
-                return new FeedResult(false, FeedType.EVOLUTION_ITEM, ProgressionResult.none(), evolutionResult, msg("feed.evolution.not-ready", "The pet is not ready to evolve yet."));
-            }
-            return new FeedResult(true, FeedType.EVOLUTION_ITEM, ProgressionResult.none(), evolutionResult,
-                evolutionResult.success() ? msg("feed.evolution.success", "Evolution successful.") : msg("feed.evolution.failed", "Evolution failed."));
+            return FeedResult.rejected(msg("feed.evolution.source-only", "Evolution opens through /pet or the Pet Source."));
         }
 
         PetType type = PetType.parse(pet.petType()).orElse(PetType.WOLF);
