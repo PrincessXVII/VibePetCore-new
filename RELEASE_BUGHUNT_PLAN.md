@@ -9,6 +9,39 @@
 - дробить работу на маленькие проверяемые проходы;
 - после потери актуальности файл можно удалить.
 
+## Быстрый triage
+
+### Брать первым
+
+- `VPC-REL-BUGHUNT-QUEST-SAVE-01`
+- `VPC-REL-BUGHUNT-EVOLUTION-SAVE-01`
+- `VPC-REL-BUGHUNT-FORGE-SAVE-01`
+- `VPC-REL-BUGHUNT-CORE-REPAIR-SAVE-01`
+
+### Уже подтверждено код-аудитом
+
+- `QuestManager` risky destructive save-flow
+- `PetEvolutionFlowSupport` / `PetEngineManager` risky evolution save-flow
+- `PetGuiService` forge upgrade risky save-flow
+- `PetGuiService` core repair risky save-flow
+
+### Ещё не доказано, но держать в очереди
+
+- admin mutation save semantics
+- `PetEggController` anti-chaos split
+- `PetGuiService` anti-chaos split
+- `VibePetCommandHandler` anti-chaos split
+- `PetEngineManager` anti-chaos split
+- Source/altar infra split
+- TPS hot-path audit
+- persistence contract audit
+
+### Не путать
+
+- `P0/P1` багфиксы идут раньше structural cleanup
+- structural cleanup идёт раньше широкого smoke/TPS разговора
+- migration/archive/storage backend не трогать без доказанного бага
+
 ## Что уже подтверждено
 
 - ветка: `codex/refactor-gui-pages`
