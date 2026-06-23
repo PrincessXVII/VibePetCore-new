@@ -92,7 +92,27 @@
 - есть regression-test;
 - `test/build` зелёные.
 
-### 4. VPC-REL-REFAC-EGG-LISTENER-01
+### 4. VPC-REL-BUGHUNT-CORE-REPAIR-SAVE-01
+
+Тип: `P0 candidate`
+
+Подозрение:
+- `repair core` тратит `TOTEM_OF_UNDYING` и меняет durability/health/satiety/core-state без явного immediate save/rollback.
+
+Файлы:
+- `src/main/java/dev/li2fox/vibepetcore/gui/PetGuiService.java`
+- `src/main/java/dev/li2fox/vibepetcore/gui/PetOverviewPage.java`
+- `src/main/java/dev/li2fox/vibepetcore/pet/PetEngineManager.java`
+- `src/main/java/dev/li2fox/vibepetcore/player/PlayerDataManager.java`
+
+Критерии закрытия:
+- тотем не теряется при `save-fail`;
+- durability/core-state не меняются без успешного сохранения;
+- active runtime/core/playerdata не расходятся;
+- есть regression-test;
+- `test/build` зелёные.
+
+### 5. VPC-REL-REFAC-EGG-LISTENER-01
 
 Тип: `structural risk`
 
@@ -115,7 +135,7 @@
 - offhand/drop/death/relog smoke не ломается;
 - listener заметно короче и понятнее.
 
-### 5. VPC-REL-REFAC-GUI-SERVICE-01
+### 6. VPC-REL-REFAC-GUI-SERVICE-01
 
 Тип: `structural risk`
 
@@ -136,7 +156,7 @@
 - GUI smoke не регрессит;
 - новые страницы и действия читаются отдельно.
 
-### 6. VPC-REL-REFAC-COMMAND-HANDLER-01
+### 7. VPC-REL-REFAC-COMMAND-HANDLER-01
 
 Тип: `structural risk`
 
@@ -157,7 +177,7 @@
 - help/usage/permissions не ломаются;
 - smoke ключевых команд остаётся зелёным.
 
-### 7. VPC-REL-REFAC-PET-ENGINE-01
+### 8. VPC-REL-REFAC-PET-ENGINE-01
 
 Тип: `structural risk`
 
@@ -178,7 +198,28 @@
 - regression-тесты на activation/evolution не ломаются;
 - runtime/smoke не регрессит.
 
-### 8. VPC-REL-REFAC-SOURCE-INFRA-01
+### 9. VPC-REL-AUDIT-ADMIN-MUTATION-SAVE-01
+
+Тип: `operational risk`
+
+Подозрение:
+- часть admin-команд меняет points/core-state без явного save в той же ветке выполнения;
+- это не первый player-facing приоритет, но опасно для тестов, ручного восстановления и отладки релизных багов.
+
+Файлы:
+- `src/main/java/dev/li2fox/vibepetcore/core/VibePetCommandHandler.java`
+- `src/main/java/dev/li2fox/vibepetcore/player/PlayerDataManager.java`
+
+Что проверить:
+- `admin addpoints/takepoints`
+- `setevolution/setlevel/setrarity/setsatiety/repaircore/fixegg`
+
+Критерии закрытия:
+- admin mutation-команды либо явно сохраняют изменения, либо это сознательно documented contract;
+- ручное восстановление не создаёт ложный рассинхрон;
+- если найдётся баг, он чинится отдельным узким проходом.
+
+### 10. VPC-REL-REFAC-SOURCE-INFRA-01
 
 Тип: `structural risk`
 
@@ -201,7 +242,7 @@
 - visual/source tick не разрастается без guards;
 - smoke у Источника/алтарей остаётся зелёным.
 
-### 9. VPC-REL-SMOKE-DESTRUCTIVE-GUI-01
+### 11. VPC-REL-SMOKE-DESTRUCTIVE-GUI-01
 
 Тип: `release evidence`
 
@@ -217,7 +258,7 @@
 - нет VibePetCore ошибок в логе;
 - нет ложного расхода ресурсов/предметов.
 
-### 10. VPC-REL-TPS-RISK-AUDIT-01
+### 12. VPC-REL-TPS-RISK-AUDIT-01
 
 Тип: `release evidence`
 
@@ -244,7 +285,7 @@ Hot-path watchlist:
 - `PetInterestLocator` использует `owner.getNearbyEntities(...)` и локальные циклы, поэтому его нельзя расширять без perf-проверки;
 - `PetMasterManager` и `LootBoxManager` имеют свои `runTaskTimer` visual tick, значит их визуальные эффекты и nearby-checks нельзя раздувать без доказательства.
 
-### 11. VPC-REL-AUDIT-PERSISTENCE-01
+### 13. VPC-REL-AUDIT-PERSISTENCE-01
 
 Тип: `foundational risk`
 
@@ -276,6 +317,7 @@ Hot-path watchlist:
 - `QuestManager` destructive save-flow
 - `PetEvolutionFlowSupport` / `PetEngineManager` destructive evolution flow
 - `PetGuiService` forge upgrade destructive flow
+- `PetGuiService` core repair destructive flow
 
 ### Structural risk
 
