@@ -185,3 +185,99 @@ Project: C:\Users\Li2Fox\IdeaProjects\VibePetCore
 - почему это важно для релиза
 - residual risk
 ```
+
+## Reviewer: Quest Save
+
+```text
+Use project-conductor.
+Role: Reviewer.
+Project: C:\Users\Li2Fox\IdeaProjects\VibePetCore
+Task ID: VPC-REL-BUGHUNT-QUEST-SAVE-01
+
+Контекст:
+- см. VPC-REL-BUGHUNT-QUEST-SAVE-01.md
+- это player-facing destructive P0
+
+Проверь:
+- есть ли immediate save/rollback вокруг quest turn-in
+- откатываются ли items, points, progress, completed, statistics при save-fail
+- не появился ли новый dupe path через GUI или /pet quest turnin
+- покрывает ли тест именно destructive turn-in failure contract
+
+Формат:
+- findings first
+- severity + file/line
+- residual risk
+```
+
+## Reviewer: Evolution Save
+
+```text
+Use project-conductor.
+Role: Reviewer.
+Project: C:\Users\Li2Fox\IdeaProjects\VibePetCore
+Task ID: VPC-REL-BUGHUNT-EVOLUTION-SAVE-01
+
+Контекст:
+- см. VPC-REL-BUGHUNT-EVOLUTION-SAVE-01.md
+- это player-facing destructive P0
+
+Проверь:
+- откатываются ли materials, stage, level, subLevel, bond, xp при save-fail
+- не расходятся ли runtime, playerdata и held core после rollback
+- не сломан ли шанс/near-far contract
+- покрывает ли тест именно consume + evolve + save-fail contract
+
+Формат:
+- findings first
+- severity + file/line
+- residual risk
+```
+
+## Reviewer: Forge Save
+
+```text
+Use project-conductor.
+Role: Reviewer.
+Project: C:\Users\Li2Fox\IdeaProjects\VibePetCore
+Task ID: VPC-REL-BUGHUNT-FORGE-SAVE-01
+
+Контекст:
+- см. VPC-REL-BUGHUNT-FORGE-SAVE-01.md
+- это player-facing destructive P0
+
+Проверь:
+- откатываются ли donor eggs при save-fail
+- не остаётся ли changed rarity без успешного save
+- не врёт ли held core / GUI message после rollback
+- покрывает ли тест именно forge consume + rarity change failure contract
+
+Формат:
+- findings first
+- severity + file/line
+- residual risk
+```
+
+## Reviewer: Core Repair Save
+
+```text
+Use project-conductor.
+Role: Reviewer.
+Project: C:\Users\Li2Fox\IdeaProjects\VibePetCore
+Task ID: VPC-REL-BUGHUNT-CORE-REPAIR-SAVE-01
+
+Контекст:
+- см. VPC-REL-BUGHUNT-CORE-REPAIR-SAVE-01.md
+- это player-facing destructive save-flow
+
+Проверь:
+- откатывается ли TOTEM_OF_UNDYING при save-fail
+- откатываются ли durability, health, satiety, inactiveUntil
+- не расходятся ли held core, runtime и playerdata после rollback
+- покрывает ли тест именно repair consume + state restore failure contract
+
+Формат:
+- findings first
+- severity + file/line
+- residual risk
+```

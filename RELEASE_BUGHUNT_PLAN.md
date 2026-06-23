@@ -5,11 +5,14 @@
 ## Снимок на 2026-06-23
 
 - честная оценка готовности до релиза: `~50%`
-- локальная ветка и `origin/codex/refactor-gui-pages` синхронны на `4efcf1e Link task prompts from codex context`
+- локальная ветка и `origin/codex/refactor-gui-pages` синхронны на `d0dfbef Add release execution queue`
 - `P0/P1` ещё не закрыты полностью, релиз `не готов`
 - следующий обязательный проход: `VPC-REL-BUGHUNT-QUEST-SAVE-01`
 - после него по очереди: `EVOLUTION` -> `FORGE` -> `CORE-REPAIR`
-- базовая проверка ветки на `892dab2`:
+- подготовлены:
+  - `4` точных `P0` handoff-файла
+  - `Builder -> Reviewer -> smoke` очередь исполнения
+- базовая проверка ветки на `d0dfbef`:
   - `./gradlew test` — зелёный
   - `./gradlew processResources compileJava test jar check` — зелёный
   - `checkJarSize`: `18478 KiB / 40960 KiB`
