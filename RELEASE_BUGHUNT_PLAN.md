@@ -178,7 +178,30 @@
 - regression-тесты на activation/evolution не ломаются;
 - runtime/smoke не регрессит.
 
-### 8. VPC-REL-SMOKE-DESTRUCTIVE-GUI-01
+### 8. VPC-REL-REFAC-SOURCE-INFRA-01
+
+Тип: `structural risk`
+
+Зоны:
+- `src/main/java/dev/li2fox/vibepetcore/master/PetMasterManager.java`
+- `src/main/java/dev/li2fox/vibepetcore/box/LootBoxManager.java`
+
+Почему важно:
+- Источник питомцев и старые алтари держат interact flow, teleport flow, visual tick, save/load и open guards;
+- это не выглядит как немедленный `P0`, но здесь легко спрятать GUI/open regressions и лишнюю нагрузку на живом сервере.
+
+Что делать:
+- не менять механику без доказанного повода;
+- при необходимости вынести отдельно `teleport flow`, `visual tick/open guards`, `altar/source interaction`;
+- проверить, что visual tick и nearby checks остаются простыми и не превращаются в тяжёлый hot-path.
+
+Критерии закрытия:
+- `/vpc source` и altar/source interactions не ломаются;
+- teleport flow читается отдельно;
+- visual/source tick не разрастается без guards;
+- smoke у Источника/алтарей остаётся зелёным.
+
+### 9. VPC-REL-SMOKE-DESTRUCTIVE-GUI-01
 
 Тип: `release evidence`
 
@@ -194,7 +217,7 @@
 - нет VibePetCore ошибок в логе;
 - нет ложного расхода ресурсов/предметов.
 
-### 9. VPC-REL-TPS-RISK-AUDIT-01
+### 10. VPC-REL-TPS-RISK-AUDIT-01
 
 Тип: `release evidence`
 
@@ -207,6 +230,13 @@
 - есть код-аудит hot-path;
 - если найден perf-risk, он выделен в отдельный узкий проход;
 - если не найден, это явно записано как "не подтверждено".
+
+Hot-path watchlist:
+- `src/main/java/dev/li2fox/vibepetcore/pet/PetAbilityService.java`
+- `src/main/java/dev/li2fox/vibepetcore/pet/PetInterestLocator.java`
+- `src/main/java/dev/li2fox/vibepetcore/task/TaskManager.java`
+- `src/main/java/dev/li2fox/vibepetcore/master/PetMasterManager.java`
+- `src/main/java/dev/li2fox/vibepetcore/box/LootBoxManager.java`
 
 ## Уже замеченные страшные места
 
@@ -222,6 +252,7 @@
 - `PetGuiService` смешивает GUI listener и business-flow
 - `PetEngineManager` слишком большой orchestration-класс
 - `VibePetCommandHandler` жирный command-router
+- `PetMasterManager` и `LootBoxManager` смешивают interaction, visual tick и infra-flow
 
 ## Как работать дальше
 
