@@ -11,6 +11,9 @@
 
 ## Быстрый triage
 
+Смотри также:
+- `RELEASE_TASK_PROMPTS.md` — готовые prompts для `Builder` и `Reviewer`
+
 ### Брать первым
 
 - `VPC-REL-BUGHUNT-QUEST-SAVE-01`
