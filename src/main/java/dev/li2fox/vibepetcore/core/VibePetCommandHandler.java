@@ -859,9 +859,12 @@ final class VibePetCommandHandler implements CommandExecutor {
                 sendNormalizedMessage(sender, msg("quest.command.unknown", "Unknown quest: {quest}", "quest", args[2]));
                 return true;
             }
-            sendNormalizedMessage(sender, this.questManager.turnIn(player, args[2], selectedQuestPetId(player).orElse(null))
+            QuestManager.TurnInResult result = this.questManager.turnInResult(player, args[2], selectedQuestPetId(player).orElse(null));
+            sendNormalizedMessage(sender, result.turnedIn()
                 ? msg("quest.turned-in", "Quest completed. Pet Points awarded.")
-                : msg("quest.turn-in-blocked", "This quest cannot be turned in yet."));
+                : (result.saveFailed()
+                    ? msg("quest.turn-in-save-failed", "Could not save the quest turn-in. Items and reward were restored. Try again in a few seconds.")
+                    : msg("quest.turn-in-blocked", "This quest cannot be turned in yet.")));
             return true;
         }
         sendNormalizedMessage(sender, msg("quest.command.usage", "Usage: /{label} quest <list|accept|turnin> <id>", "label", label));

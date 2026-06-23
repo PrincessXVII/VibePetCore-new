@@ -89,11 +89,38 @@ public final class QuestProgressData {
         markDirty();
     }
 
+    public Snapshot snapshot() {
+        return new Snapshot(accepted, completed, progress, acceptedAtMillis, completedAtMillis, boundPetId);
+    }
+
+    public void restore(Snapshot snapshot) {
+        if (snapshot == null) {
+            return;
+        }
+        accepted = snapshot.accepted();
+        completed = snapshot.completed();
+        progress = snapshot.progress();
+        acceptedAtMillis = snapshot.acceptedAtMillis();
+        completedAtMillis = snapshot.completedAtMillis();
+        boundPetId = snapshot.boundPetId();
+        markDirty();
+    }
+
     void attachDirtyMarker(Runnable dirtyMarker) {
         this.dirtyMarker = dirtyMarker == null ? NO_OP : dirtyMarker;
     }
 
     private void markDirty() {
         dirtyMarker.run();
+    }
+
+    public record Snapshot(
+        boolean accepted,
+        boolean completed,
+        int progress,
+        long acceptedAtMillis,
+        long completedAtMillis,
+        UUID boundPetId
+    ) {
     }
 }

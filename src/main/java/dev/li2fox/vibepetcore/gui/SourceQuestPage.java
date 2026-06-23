@@ -139,9 +139,9 @@ final class SourceQuestPage implements PetGuiPage {
             open(player, category, source, page);
             return true;
         }
-        boolean turnedIn = gui.questManager().turnIn(player, quest.id(), gui.selectedQuestPetId(player).orElse(null));
+        QuestManager.TurnInResult turnedIn = gui.questManager().turnInResult(player, quest.id(), gui.selectedQuestPetId(player).orElse(null));
         player.sendMessage(gui.questGuiSupport().turnedInMessage(turnedIn));
-        gui.playQuestFeedback(player, turnedIn, turnedIn);
+        gui.playQuestFeedback(player, turnedIn.turnedIn(), turnedIn.turnedIn());
         open(player, category, source, page);
         return true;
     }

@@ -156,6 +156,20 @@ public final class QuestManager implements CoreModule {
         }
     }
 
+    public record TurnInResult(boolean turnedIn, boolean saveFailed) {
+        private static TurnInResult success() {
+            return new TurnInResult(true, false);
+        }
+
+        private static TurnInResult blocked() {
+            return new TurnInResult(false, false);
+        }
+
+        private static TurnInResult saveFailedResult() {
+            return new TurnInResult(false, true);
+        }
+    }
+
     public boolean cancel(UUID playerId, String questId) {
         QuestDefinition quest = quests.get(questId);
         if (quest == null) {
@@ -195,16 +209,20 @@ public final class QuestManager implements CoreModule {
     }
 
     public boolean turnIn(UUID playerId, String questId) {
+        return turnInResult(playerId, questId).turnedIn();
+    }
+
+    public TurnInResult turnInResult(UUID playerId, String questId) {
         QuestDefinition quest = quests.get(questId);
         if (quest == null) {
-            return false;
+            return TurnInResult.blocked();
         }
+        PlayerData playerData = playerDataManager.getOrLoad(playerId);
         QuestProgressData progress = progress(playerId, questId);
         if (!progress.accepted() || progress.completed() || progress.progress() < quest.amount()) {
-            return false;
+            return TurnInResult.blocked();
         }
-        complete(playerId, quest, progress);
-        return true;
+        return finishTurnIn(playerId, playerData, quest, progress, snapshotTurnInState(playerData, progress), null, null);
     }
 
     public boolean turnIn(Player player, String questId) {
@@ -212,34 +230,45 @@ public final class QuestManager implements CoreModule {
     }
 
     public boolean turnIn(Player player, String questId, UUID selectedPetId) {
+        return turnInResult(player, questId, selectedPetId).turnedIn();
+    }
+
+    public TurnInResult turnInResult(Player player, String questId) {
+        return turnInResult(player, questId, null);
+    }
+
+    public TurnInResult turnInResult(Player player, String questId, UUID selectedPetId) {
         QuestDefinition quest = quests.get(questId);
         if (quest == null) {
-            return false;
+            return TurnInResult.blocked();
         }
-        QuestProgressData progress = progress(player.getUniqueId(), questId);
+        UUID playerId = player.getUniqueId();
+        PlayerData playerData = playerDataManager.getOrLoad(playerId);
+        QuestProgressData progress = progress(playerId, questId);
         if (!progress.accepted() || progress.completed()) {
-            return false;
+            return TurnInResult.blocked();
         }
         if (!bindingMatches(quest, progress, selectedPetId)) {
-            return false;
+            return TurnInResult.blocked();
         }
         if (quest.type() == QuestType.PICKUP_ITEM) {
             Material material = Material.matchMaterial(quest.target());
             if (material == null || count(player, material) < quest.amount()) {
-                return false;
+                return TurnInResult.blocked();
             }
+            TurnInStateSnapshot stateSnapshot = snapshotTurnInState(playerData, progress);
+            InventorySnapshot inventorySnapshot = null;
             if (player.getGameMode() != GameMode.CREATIVE) {
+                inventorySnapshot = snapshotInventory(player);
                 consume(player, material, quest.amount());
             }
             progress.setProgress(quest.amount(), quest.amount());
-            complete(player.getUniqueId(), quest, progress);
-            return true;
+            return finishTurnIn(playerId, playerData, quest, progress, stateSnapshot, player, inventorySnapshot);
         }
         if (progress.progress() < quest.amount()) {
-            return false;
+            return TurnInResult.blocked();
         }
-        complete(player.getUniqueId(), quest, progress);
-        return true;
+        return finishTurnIn(playerId, playerData, quest, progress, snapshotTurnInState(playerData, progress), null, null);
     }
 
     public int displayProgress(Player player, QuestDefinition quest) {
@@ -303,11 +332,45 @@ public final class QuestManager implements CoreModule {
             : msg("quest.status.remaining", "Remaining: {missing}", "missing", missing);
     }
 
-    private void complete(UUID playerId, QuestDefinition quest, QuestProgressData progress) {
+    private TurnInResult finishTurnIn(
+        UUID playerId,
+        PlayerData playerData,
+        QuestDefinition quest,
+        QuestProgressData progress,
+        TurnInStateSnapshot snapshot,
+        Player player,
+        InventorySnapshot inventorySnapshot
+    ) {
+        complete(playerId, playerData, quest, progress);
+        if (playerDataManager.save(playerId)) {
+            return TurnInResult.success();
+        }
+        rollbackTurnInState(playerData, progress, snapshot);
+        if (player != null && inventorySnapshot != null) {
+            restoreInventory(player, inventorySnapshot);
+        }
+        return TurnInResult.saveFailedResult();
+    }
+
+    private void complete(UUID playerId, PlayerData playerData, QuestDefinition quest, QuestProgressData progress) {
         progress.setCompleted(true);
-        PlayerData playerData = playerDataManager.getOrLoad(playerId);
         playerData.statistics().addQuestCompleted();
         economyManager.award(playerId, quest.rewardPoints(), RewardReason.QUEST, quest.id());
+    }
+
+    static TurnInStateSnapshot snapshotTurnInState(PlayerData playerData, QuestProgressData progress) {
+        return new TurnInStateSnapshot(progress.snapshot(), playerData.points(), playerData.statistics().questsCompleted());
+    }
+
+    static void rollbackTurnInState(PlayerData playerData, QuestProgressData progress, TurnInStateSnapshot snapshot) {
+        progress.restore(snapshot.progress());
+        long pointDelta = snapshot.points() - playerData.points();
+        if (pointDelta > 0L) {
+            playerData.addPoints(pointDelta);
+        } else if (pointDelta < 0L) {
+            playerData.takePoints(-pointDelta);
+        }
+        playerData.statistics().setQuestsCompleted(snapshot.questsCompleted());
     }
 
     public void record(UUID playerId, QuestType type, String target) {
@@ -506,5 +569,27 @@ public final class QuestManager implements CoreModule {
             remaining -= take;
         }
         player.getInventory().setStorageContents(contents);
+    }
+
+    private InventorySnapshot snapshotInventory(Player player) {
+        return new InventorySnapshot(cloneContents(player.getInventory().getStorageContents()));
+    }
+
+    private void restoreInventory(Player player, InventorySnapshot snapshot) {
+        player.getInventory().setStorageContents(cloneContents(snapshot.contents()));
+    }
+
+    private ItemStack[] cloneContents(ItemStack[] source) {
+        ItemStack[] clone = new ItemStack[source.length];
+        for (int index = 0; index < source.length; index++) {
+            clone[index] = source[index] == null ? null : source[index].clone();
+        }
+        return clone;
+    }
+
+    static record TurnInStateSnapshot(QuestProgressData.Snapshot progress, long points, long questsCompleted) {
+    }
+
+    private record InventorySnapshot(ItemStack[] contents) {
     }
 }

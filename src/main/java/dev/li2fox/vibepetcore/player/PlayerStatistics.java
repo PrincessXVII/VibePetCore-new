@@ -19,6 +19,14 @@ public final class PlayerStatistics {
         markDirty();
     }
 
+    public void setQuestsCompleted(long questsCompleted) {
+        long normalized = Math.max(0L, questsCompleted);
+        if (this.questsCompleted != normalized) {
+            this.questsCompleted = normalized;
+            markDirty();
+        }
+    }
+
     public long kills() {
         return kills;
     }

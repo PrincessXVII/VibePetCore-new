@@ -301,6 +301,7 @@ public final class GameText {
     public static String questAcceptFailed() { return msg("quest.accept-failed", localized("Не удалось принять квест.", "Failed to accept quest.")); }
     public static String questTurnedIn() { return msg("quest.turned-in", localized("Квест завершён. Очки питомца начислены.", "Quest completed. Pet Points awarded.")); }
     public static String questTurnInBlocked() { return msg("quest.turn-in-blocked", localized("Этот квест пока нельзя сдать.", "This quest cannot be turned in yet.")); }
+    public static String questTurnInSaveFailed() { return msg("quest.turn-in-save-failed", localized("Квест не удалось сохранить. Предметы и награда восстановлены, попробуйте ещё раз через пару секунд.", "Could not save the quest turn-in. Items and reward were restored. Try again in a few seconds.")); }
     public static String questBlocked(String reason) { return msg("quest.blocked", localized("Сейчас нельзя взять этот квест: {reason}.", "You cannot take this quest right now: {reason}."), "reason", reason); }
     public static String questRepeatWeek() { return msg("time.week", localized("неделю", "week")); }
     public static String questRepeatDay() { return msg("time.day", localized("день", "day")); }

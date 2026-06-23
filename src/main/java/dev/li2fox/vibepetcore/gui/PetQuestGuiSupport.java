@@ -95,8 +95,11 @@ final class PetQuestGuiSupport {
             : GameText.questAccepted();
     }
 
-    String turnedInMessage(boolean turnedIn) {
-        return turnedIn ? GameText.questTurnedIn() : GameText.questTurnInBlocked();
+    String turnedInMessage(QuestManager.TurnInResult result) {
+        if (result.turnedIn()) {
+            return GameText.questTurnedIn();
+        }
+        return result.saveFailed() ? GameText.questTurnInSaveFailed() : GameText.questTurnInBlocked();
     }
 
     String blockedMessage(String reason) {
