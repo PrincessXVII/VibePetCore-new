@@ -45,14 +45,36 @@ Evidence files outside repo:
 - bot log: `%TEMP%\VibePetCore-smoke-2.6.26\release-gate-bot.log`
 - server log: `%TEMP%\VibePetCore-smoke-2.6.26\release-gate-server-out.log`
 
-Not proven by this live smoke:
-- Actual evolution attempt button on production config with honest `bond >= 4`, completed stage quest, and real material spend.
-- Core repair click on production config with a truly damaged core and real totem spend.
-- Multi-player TPS/load behavior on the real proxy+lobby+plugin stack.
+Live evolution/repair gate:
+- Separate test root: `%TEMP%\VibePetCore-smoke-evolution-2.6.26`
+- Bot script kept in repo: `tools/bot_release_evolution_repair_smoke.js`
+- Preparation:
+  - a clean summon/relog root was created first to persist a real wolf core and matching `PlayerData` pet entry;
+  - then the offline `players/<uuid>.json` was edited for the same `petId` to seed:
+    - `level=3`
+    - `bond=4`
+    - `durability=6`
+    - one completed evolution quest `evolution_2_hunt` with `boundPetId=<same petId>`
+  - this was used only to prove the real GUI spend/save path without grinding bond/quest progress by hand.
+- Verified by live run:
+  - after `/vpc source set` near the player and a normal offhand summon, `/vpc debugpet` showed `bond=4`, `level=3`, `evolution=1`, `durability=6`;
+  - with `24 BONE` and `16 LEATHER`, `/pet -> slot 13 -> slot 22` evolved the wolf successfully;
+  - both material stacks were consumed to `0`;
+  - `/pet info` changed from `E1` to `E2`;
+  - observed post-evolution reset:
+    - `level 3 -> 1`
+    - `bond 4 -> 0`
+    - `durability` stayed `6`
+  - code check matches this behavior: `CoreProgressionAPI.tryEvolve(...)` resets level/sublevel/bond/xp on successful stage-up.
+  - with the same active pet at `durability=6`, `/pet -> slot 24` consumed exactly `1` totem and raised durability `6 -> 7`;
+  - final `/pet info` showed `E2` and `прочность 7/7`;
+  - server shutdown through in-game `/stop` was clean; no VibePetCore errors appeared in the server log.
+- Evidence files outside repo:
+  - bot log: `%TEMP%\VibePetCore-smoke-evolution-2.6.26\gate-bot.log`
+  - server log: `%TEMP%\VibePetCore-smoke-evolution-2.6.26\gate-server-out.log`
 
 Release interpretation:
-- `Source offhand conflict`, `quest accept/turn-in`, `forge donor spend`, and `box reward spend` now have live evidence.
-- Remaining player-facing release uncertainty is reduced to:
-  - real evolution button spend path;
-  - real core repair spend path;
-  - stack-level TPS/manual server check.
+- `Source offhand conflict`, `quest accept/turn-in`, `forge donor spend`, `box reward spend`, `actual evolution button`, and `core repair` now all have live evidence.
+- Remaining release uncertainty is reduced to:
+  - real proxy/lobby/plugin stack check on the target machine;
+  - live TPS/MSPT observation with 2-3 testers and normal plugin neighbors.

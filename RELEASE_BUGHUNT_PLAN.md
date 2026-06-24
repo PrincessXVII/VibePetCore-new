@@ -312,11 +312,9 @@
 - destructive GUI click у `Source box`;
 - `quest accept/turn-in`;
 - `forge upgrade`;
-- прямой `ПКМ` по установленному Источнику, когда core в offhand.
-
-Что ещё не закрыто на боевом конфиге:
 - actual evolution attempt button;
-- core repair click на реально повреждённом ядре.
+- `core repair`;
+- прямой `ПКМ` по установленному Источнику, когда core в offhand.
 
 Критерии закрытия:
 - controlled smoke записан в `SMOKE-2.6.26.txt`;
@@ -324,8 +322,8 @@
 - нет ложного расхода ресурсов/предметов.
 
 Остаток после `SMOKE-2.6.26.txt`:
-- нужен короткий ручной gate `VPC-REL-MANUAL-EVOLUTION-REPAIR-01`;
-- причина: в текущем админ-наборе нет честного детерминированного seed для `bond >= 4` и `damaged core`, который не искажал бы production-config proof.
+- нужен только реальный stack/manual gate `VPC-REL-STACK-MANUAL-01`;
+- player-facing destructive механики считаются доказанными.
 
 ### 12. VPC-REL-TPS-RISK-AUDIT-01
 
@@ -353,6 +351,7 @@ Hot-path watchlist:
 - `PetAbilityService` выглядит как реальный hot-path candidate, но уже имеет nearby-cache и cooldown cleanup;
 - `PetInterestLocator` использует `owner.getNearbyEntities(...)` и локальные циклы, поэтому его нельзя расширять без perf-проверки;
 - `PetMasterManager` и `LootBoxManager` имеют свои `runTaskTimer` visual tick, значит их визуальные эффекты и nearby-checks нельзя раздувать без доказательства.
+- на текущем `2026-06-24` code audit новых очевидных release-blocker `P0/P1` в этих местах не дал; остаток риска теперь только на живом server stack.
 
 ### 13. VPC-REL-AUDIT-PERSISTENCE-01
 

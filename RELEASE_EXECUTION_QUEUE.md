@@ -21,7 +21,9 @@
   - `quest accept/turn-in`
   - `forge upgrade spend path`
   - `Source box spend path`
-- следующий обязательный проход: `VPC-REL-MANUAL-EVOLUTION-REPAIR-01`
+  - `actual evolution button`
+  - `core repair`
+- следующий обязательный проход: `VPC-REL-STACK-MANUAL-01`
 - launch-файл для новых чатов: `RELEASE_CHAT_LAUNCH.md`
 - handoff уже подготовлены для:
   - `VPC-REL-BUGHUNT-QUEST-SAVE-01`
@@ -84,21 +86,21 @@
 
 Результат:
 - обновить `SMOKE-2.6.23.txt` или новый smoke-файл
-- после `SMOKE-2.6.26.txt` следующий узкий gate: `VPC-REL-MANUAL-EVOLUTION-REPAIR-01`
+- после `SMOKE-2.6.26.txt` destructive player-facing paths считаются закрытыми живым доказательством
 
-### 6. Manual Evolution / Repair Gate
+### 6. Stack / Manual Release Gate
 
-Стартовать только если `SMOKE-2.6.26.txt` зелёный.
+Стартовать только если `SMOKE-2.6.26.txt` зелёный и кодовый bug-hunt не дал новых `P0/P1`.
 
 Что осталось доказать руками:
-- actual evolution attempt button на боевом конфиге;
-- core repair click на реально повреждённом ядре;
-- без подмены bond/durability через тестовый конфиг.
+- тот же plugin jar на реальном proxy/lobby/plugin stack не даёт неприятный first-player UX;
+- 2-3 игрока не ловят заметных MSPT spikes при summon/Source/GUI/quest/forge/evolution;
+- рядом с реальными соседними плагинами нет конфликтов по inventory/gui/offhand flow.
 
 Результат:
 - exact pass/fail шаги зафиксированы в `TEST_CHECKLIST.md`;
 - если найден `P0/P1`, сначала узкий fix, потом повтор;
-- если pass, только тогда идти в следующий аудит.
+- если pass, решение можно поднимать до `release candidate`.
 
 ### 7. Admin Mutation Save Audit
 
