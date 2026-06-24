@@ -8,7 +8,7 @@ final class PetGuiCoreSelectionSupport {
     private PetGuiCoreSelectionSupport() {
     }
 
-    static <T> Optional<T> selectPersonalMenuCore(
+    static <T> Optional<T> selectPreferredGuiCore(
         Optional<UUID> activePetId,
         Optional<T> mainHand,
         Optional<T> offhand,

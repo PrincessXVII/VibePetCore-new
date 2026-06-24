@@ -16,7 +16,7 @@ final class PetGuiCoreSelectionSupportTest {
         CoreCandidate mainHand = new CoreCandidate(pet());
         CoreCandidate offhand = new CoreCandidate(activePet);
 
-        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPersonalMenuCore(
+        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPreferredGuiCore(
             Optional.of(activePet.petId()),
             Optional.of(mainHand),
             Optional.of(offhand),
@@ -33,7 +33,7 @@ final class PetGuiCoreSelectionSupportTest {
         CoreCandidate mainHand = new CoreCandidate(activePet);
         CoreCandidate offhand = new CoreCandidate(pet());
 
-        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPersonalMenuCore(
+        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPreferredGuiCore(
             Optional.of(activePet.petId()),
             Optional.of(mainHand),
             Optional.of(offhand),
@@ -49,7 +49,7 @@ final class PetGuiCoreSelectionSupportTest {
         CoreCandidate mainHand = new CoreCandidate(pet());
         CoreCandidate offhand = new CoreCandidate(pet());
 
-        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPersonalMenuCore(
+        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPreferredGuiCore(
             Optional.empty(),
             Optional.of(mainHand),
             Optional.of(offhand),
@@ -62,7 +62,7 @@ final class PetGuiCoreSelectionSupportTest {
 
     @Test
     void personalMenuReturnsEmptyWhenNoCoreExists() {
-        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPersonalMenuCore(
+        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPreferredGuiCore(
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
@@ -70,6 +70,23 @@ final class PetGuiCoreSelectionSupportTest {
         );
 
         assertFalse(selected.isPresent());
+    }
+
+    @Test
+    void sourceForgePrefersActiveOffhandCoreOverAnotherMainHandCore() {
+        OwnedPetData activePet = pet();
+        CoreCandidate mainHand = new CoreCandidate(pet());
+        CoreCandidate offhand = new CoreCandidate(activePet);
+
+        Optional<CoreCandidate> selected = PetGuiCoreSelectionSupport.selectPreferredGuiCore(
+            Optional.of(activePet.petId()),
+            Optional.of(mainHand),
+            Optional.of(offhand),
+            candidate -> candidate.petData().petId()
+        );
+
+        assertTrue(selected.isPresent());
+        assertEquals(offhand, selected.get());
     }
 
     private OwnedPetData pet() {

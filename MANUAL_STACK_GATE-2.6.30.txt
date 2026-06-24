@@ -1,8 +1,8 @@
-# VibePetCore 2.6.29 manual stack gate
+# VibePetCore 2.6.30 manual stack gate
 
 Дата: 2026-06-24
 Ветка: `codex/refactor-gui-pages`
-Jar для теста: `VibePetCore-2.6.29-release-candidate.jar`
+Jar для теста: `VibePetCore-2.6.30-release-candidate.jar`
 
 ## Что уже доказано и не надо заново раскручивать как bug-hunt
 
@@ -105,13 +105,15 @@ PASS:
 
 Шаги:
 1. Первый игрок рядом с Источником прогоняет summon -> forge -> evolution.
-2. В это же время второй игрок открывает `/pet` и Source GUI.
-3. Смотреть `1-2` минуты на `MSPT/TPS` во время кликов, обновлений GUI и summon.
-4. Проверить серверный лог на ошибки `VibePetCore`.
+2. Во время `forge` первый игрок держит другое ядро в `main hand`: кузня всё равно должна работать по активному/offhand ядру.
+3. В это же время второй игрок открывает `/pet` и Source GUI.
+4. Смотреть `1-2` минуты на `MSPT/TPS` во время кликов, обновлений GUI и summon.
+5. Проверить серверный лог на ошибки `VibePetCore`.
 
 PASS:
 - нет sustained `MSPT > 35`;
 - нет серии пиков к `50+` только из-за VibePetCore;
+- `forge` не перескакивает на чужое/main-hand ядро и не тратит donor eggs не в тот core;
 - forge/evolution не ломают GUI соседнего игрока;
 - в логах нет stacktrace.
 

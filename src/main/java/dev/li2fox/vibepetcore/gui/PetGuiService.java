@@ -420,7 +420,12 @@ public final class PetGuiService implements Listener {
     }
 
     private Optional<HeldPetCore> heldPetCore(Player player) {
-        return mainHandPetCore(player).or(() -> offhandPetCore(player));
+        return PetGuiCoreSelectionSupport.selectPreferredGuiCore(
+            runtimePet(player).map(pet -> pet.data().petId()),
+            mainHandPetCore(player),
+            offhandPetCore(player),
+            core -> core.data().petId()
+        );
     }
 
     private Optional<HeldPetCore> mainHandPetCore(Player player) {
@@ -439,12 +444,7 @@ public final class PetGuiService implements Listener {
     }
 
     private Optional<HeldPetCore> petMenuHeldPetCore(Player player) {
-        return PetGuiCoreSelectionSupport.selectPersonalMenuCore(
-            runtimePet(player).map(pet -> pet.data().petId()),
-            mainHandPetCore(player),
-            offhandPetCore(player),
-            core -> core.data().petId()
-        );
+        return heldPetCore(player);
     }
 
     Optional<dev.li2fox.vibepetcore.pet.RuntimePet> runtimePet(Player player) {
