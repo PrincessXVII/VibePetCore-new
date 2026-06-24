@@ -7,6 +7,7 @@
 - launch-файл чатов: `RELEASE_CHAT_LAUNCH.md`
 - smoke доказательство по живому GUI/Source: `SMOKE-2.6.26.txt`
 - короткий ручной релизный pack для тестеров: `MANUAL_STACK_GATE-2.6.33.txt`
+- шаблон ответа тестеров по ручному gate: `STACK_GATE_REPORT_TEMPLATE-2.6.33.txt`
 - честная оценка готовности на `2026-06-24`: `~92%`, релиз ещё `не готов`
 - закрыты кодом и тестами: `VPC-REL-BUGHUNT-QUEST-SAVE-01`, `VPC-REL-BUGHUNT-EVOLUTION-SAVE-01`, `VPC-REL-BUGHUNT-FORGE-SAVE-01`, `VPC-REL-BUGHUNT-CORE-REPAIR-SAVE-01`
 - живым smoke уже подтверждены: `Source offhand conflict`, `quest accept/turn-in`, `forge spend`, `box spend`, `actual evolution button`, `core repair`
