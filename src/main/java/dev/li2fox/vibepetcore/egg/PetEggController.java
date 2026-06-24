@@ -473,10 +473,7 @@ public final class PetEggController implements CoreModule, Listener {
     }
 
     private boolean canEmptyCoreReceiveActivePet(ItemStack item, OwnedPetData activePet) {
-        Optional<OwnedPetData> clickedPet = eggService.readEgg(item);
-        return clickedPet.isEmpty()
-            || clickedPet.get().petId().equals(activePet.petId())
-            || clickedPet.get().petType().equalsIgnoreCase(activePet.petType());
+        return PetEggRecallSupport.canReceiveActivePet(eggService.readEgg(item), activePet);
     }
 
     private ItemStack itemInHand(Player player, EquipmentSlot hand) {

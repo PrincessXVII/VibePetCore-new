@@ -6,7 +6,7 @@
 - очередь исполнения: `RELEASE_EXECUTION_QUEUE.md`
 - launch-файл чатов: `RELEASE_CHAT_LAUNCH.md`
 - smoke доказательство по живому GUI/Source: `SMOKE-2.6.26.txt`
-- честная оценка готовности на `2026-06-24`: `~90%`, релиз ещё `не готов`
+- честная оценка готовности на `2026-06-24`: `~92%`, релиз ещё `не готов`
 - закрыты кодом и тестами: `VPC-REL-BUGHUNT-QUEST-SAVE-01`, `VPC-REL-BUGHUNT-EVOLUTION-SAVE-01`, `VPC-REL-BUGHUNT-FORGE-SAVE-01`, `VPC-REL-BUGHUNT-CORE-REPAIR-SAVE-01`
 - живым smoke уже подтверждены: `Source offhand conflict`, `quest accept/turn-in`, `forge spend`, `box spend`, `actual evolution button`, `core repair`
 - код-аудит hot-path не выявил нового очевидного TPS-blocker в `TaskManager`, `PetInterestLocator`, `PetAbilityService`, `PetMasterManager`, `LootBoxManager`
@@ -82,6 +82,10 @@
   - `/pet help summon` и pet-type help больше не врут про main-hand summon и больше не обещают одинаковые таймеры призыва;
   - shipped help теперь честно говорит: filled/matching empty core в `offhand`, первый summon `3 сек`, обычный `2 сек`;
   - добавлен regression-тест на help summon truthfulness.
+- `2.6.29`
+  - recall пустым ядром больше не принимает другое ядро того же pet-type: теперь для возврата нужен тот же `petId` или unreadable legacy core;
+  - это закрывает риск потери второго питомца, когда активный pet мог перезаписать чужое empty core того же типа;
+  - добавлен unit-тест на recall target matching.
 - `2.6.25`
   - кузня ядра теперь требует успешного `playerData save` после расхода donor eggs и попытки апгрейда редкости;
   - при save-fail donor eggs и rarity/state активного питомца откатываются, ложный success не показывается;
