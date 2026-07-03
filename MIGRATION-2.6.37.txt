@@ -11,7 +11,7 @@ Jar slimming:
 Server config example:
   resource-pack:
     enabled: true
-    url: "https://raw.githubusercontent.com/PrincessXVII/VibePetCore-new/main/dist/VibePetCore-resource-pack.zip"
+    url: "https://raw.githubusercontent.com/VibeCraft-one/VibePetCore-new/main/dist/VibePetCore-resource-pack.zip"
     sha1: "996118a5a85f33292f85157780201ec8cc1381d4"
     required: false
 
