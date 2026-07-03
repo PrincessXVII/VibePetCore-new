@@ -9,6 +9,7 @@ build/
 ### Build artifacts and archives ###
 !gradle/wrapper/gradle-wrapper.jar
 *.zip
+!dist/VibePetCore-resource-pack.zip
 *.tar
 *.tar.gz
 *.tgz
@@ -58,7 +59,8 @@ bin/
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
-/dist/
+/dist/*
+!dist/VibePetCore-resource-pack.zip
 /nbdist/
 /.nb-gradle/
 
